@@ -102,6 +102,9 @@ class VisualGroundingModel(nn.Module):
         return pred_bbox
 
 
+# Checking
+
+
 # =======================
 # Visualization Utility
 # =======================
