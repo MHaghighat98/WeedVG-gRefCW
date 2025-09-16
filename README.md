@@ -8,3 +8,8 @@ The current setup is a **bounding box regressor** that combines **ResNet-50** fo
 - The model uses these projected features for bounding box regression.
 
 No training is involved—only inference is performed.
+
+ TO DO:
+  Finalise the annotation file.
+  Modify current architecture.
+  
