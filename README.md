@@ -10,6 +10,6 @@ The current setup is a **bounding box regressor** that combines **ResNet-50** fo
 No training is involved—only inference is performed.
 
  TO DO:
-  Finalise the annotation file.
-  Modify current architecture.
+
+ Check expressions and statistics.
   
