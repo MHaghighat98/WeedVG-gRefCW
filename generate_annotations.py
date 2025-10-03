@@ -110,7 +110,16 @@ def generate_single_referring_expression(category, bbox, image_width, image_heig
     expression = f"{size} {category} {position}"
 
     return expression
-
+    
+def generate_image_level_expression(crop_count, weed_count):
+    """Describe which categories are missing (if any) for an image"""
+    if crop_count == 0 and weed_count == 0:
+        return "no crops or weeds are visible in this image"
+    if crop_count > 0 and weed_count == 0:
+        return "no weeds are present in this image"
+    if crop_count == 0 and weed_count > 0:
+        return "no crops are present in this image"
+    return None  # Return None when no categories are missing
 
 def main():
     print("Generating gRefCOCO format dataset...")
@@ -352,3 +361,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
