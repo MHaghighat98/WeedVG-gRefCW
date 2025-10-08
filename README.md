@@ -6,4 +6,6 @@ Model will be built upon InstanceVG - WAITING FOR CODE RELEASE
 
  # TO DO:
  Check expressions and statistics.
+
+ Revise test set expressions.
   
