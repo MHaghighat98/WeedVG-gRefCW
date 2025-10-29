@@ -17,13 +17,14 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QScrollArea,
     QFrame,
+    QComboBox,
 )
 from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QFont
 from PyQt6.QtCore import Qt
 
 # --- Configuration ---
-GREFS_JSON = r"c:\Users\jd138001\Downloads\Combination\grefs(unc).json"
-INSTANCES_JSON = r"c:\Users\jd138001\Downloads\Combination\instances.json"
+GREFS_JSON = r"c:\Users\jd138001\Downloads\Data\grefcoco_format\grefs(unc).json"
+INSTANCES_JSON = r"c:\Users\jd138001\Downloads\Data\grefcoco_format\instances.json"
 IMAGES_DIR = r"c:\Users\jd138001\Downloads\data\images"
 CATEGORY_NAMES = {1: "crop", 2: "weed"}
 CATEGORY_COLORS = {
@@ -330,13 +331,272 @@ class AnnotationPanel(QScrollArea):
             bbox = inst.get("bbox", ["N/A"] * 4)
             bbox_text = f"BBox: ({bbox[0]:.0f}, {bbox[1]:.0f}, {bbox[2]:.0f}, {bbox[3]:.0f})"
             vbox.addWidget(QLabel(bbox_text))
+            self.layout.addWidget(frame)
 
-            sentence = f'<i>"{inst["sentence"]}"</i>'
-            sentence_label = QLabel(sentence)
-            sentence_label.setWordWrap(True)
-            vbox.addWidget(sentence_label)
+
+class TestAnnotationPanel(QScrollArea):
+    """A scrollable panel for test split that shows both sentence and original_sentence."""
+
+    def __init__(self):
+        super().__init__()
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setStyleSheet("background-color: #fff3cd; border-radius: 5px;")  # Light yellow for test
+
+        self.container = QWidget()
+        self.layout = QVBoxLayout(self.container)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.setWidget(self.container)
+
+    def update_content(self, image_data):
+        # Clear old content
+        for i in reversed(range(self.layout.count())):
+            self.layout.itemAt(i).widget().setParent(None)
+
+        # --- Image Info ---
+        title = QLabel("Image Information (TEST SPLIT)")
+        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #856404; margin-bottom: 10px;")
+        self.layout.addWidget(title)
+
+        info_text = (
+            f"<b>File:</b> {image_data['file_name']}<br><b>ID:</b> {image_data['id']} | <b>Size:</b> {image_data['width']}x{image_data['height']}px"
+        )
+        self.layout.addWidget(QLabel(info_text))
+
+        # --- Category Counts ---
+        instances = image_data.get("instance_sentences", [])
+        crop_count = sum(1 for inst in instances if inst.get("category_name") == "crop")
+        weed_count = sum(1 for inst in instances if inst.get("category_name") == "weed")
+
+        counts_label = QLabel(f"<b>Crops:</b> {crop_count} | <b>Weeds:</b> {weed_count}")
+        counts_label.setStyleSheet("margin-top: 10px; font-size: 14px;")
+        self.layout.addWidget(counts_label)
+
+        # --- Image-level Sentences ---
+        img_level_sentences = []
+        if isinstance(image_data.get("sentences"), list):
+            for s in image_data["sentences"]:
+                if isinstance(s, dict) and "raw" in s:
+                    img_level_sentences.append(str(s["raw"]))
+                else:
+                    img_level_sentences.append(str(s))
+        elif isinstance(image_data.get("image_level_sentences"), list):
+            for s in image_data["image_level_sentences"]:
+                if isinstance(s, dict) and "raw" in s:
+                    img_level_sentences.append(str(s["raw"]))
+                else:
+                    img_level_sentences.append(str(s))
+
+        if isinstance(image_data.get("negative_sentence"), str) and image_data["negative_sentence"].strip():
+            img_level_sentences.append(f"[Negative] {image_data['negative_sentence']}")
+
+        if img_level_sentences:
+            img_level_title = QLabel("Image-Level Sentences")
+            img_level_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #856404; margin-top: 20px; margin-bottom: 10px;")
+            self.layout.addWidget(img_level_title)
+
+            for s in img_level_sentences:
+                sent_label = QLabel(f'<i>"{s}"</i>')
+                sent_label.setWordWrap(True)
+                self.layout.addWidget(sent_label)
+
+        # --- Instances ---
+        instances_title = QLabel(f"Instances ({len(instances)})")
+        instances_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #856404; margin-top: 20px; margin-bottom: 10px;")
+        self.layout.addWidget(instances_title)
+
+        for idx, inst in enumerate(instances):
+            category = inst.get("category_name", "unknown")
+            color = CATEGORY_COLORS[category].name()
+
+            frame = QFrame()
+            frame.setFrameShape(QFrame.Shape.StyledPanel)
+            frame.setStyleSheet(f"background-color: white; border-left: 4px solid {color}; border-radius: 4px; margin-bottom: 10px;")
+
+            vbox = QVBoxLayout(frame)
+
+            header = f"<b>[{idx + 1}] {category.upper()}</b>"
+            vbox.addWidget(QLabel(header))
+
+            bbox = inst.get("bbox", ["N/A"] * 4)
+            bbox_text = f"BBox: ({bbox[0]:.0f}, {bbox[1]:.0f}, {bbox[2]:.0f}, {bbox[3]:.0f})"
+            vbox.addWidget(QLabel(bbox_text))
+
+            # Show BOTH original_sentence and test sentence for test split
+            original_sentence = inst.get("original_sentence")
+            test_sentence = inst.get("test sentence")  # Note: space in key name
+
+            if original_sentence:
+                orig_label = QLabel(f'<b>Original Sentence:</b> <i>"{original_sentence}"</i>')
+                orig_label.setWordWrap(True)
+                orig_label.setStyleSheet("color: #006600; margin-top: 5px; font-weight: bold;")
+                vbox.addWidget(orig_label)
+
+            if test_sentence:
+                test_label = QLabel(f'<b>Test Sentence:</b> <i>"{test_sentence}"</i>')
+                test_label.setWordWrap(True)
+                test_label.setStyleSheet("color: #cc0000; margin-top: 5px; font-weight: bold;")
+                vbox.addWidget(test_label)
+
+            # Show change metadata if available
+            if inst.get("change_type"):
+                change_detail = inst.get("change_detail", {})
+                change_text = f"<small><b>Change:</b> {inst['change_type']}"
+                if change_detail:
+                    change_text += f" ({change_detail.get('attribute', 'N/A')}: "
+                    change_text += f"{change_detail.get('from', 'N/A')} → {change_detail.get('to', 'N/A')})"
+                change_text += "</small>"
+                change_label = QLabel(change_text)
+                change_label.setStyleSheet("color: #856404; margin-top: 3px;")
+                vbox.addWidget(change_label)
+
+            if not original_sentence and not test_sentence:
+                # Fallback to other keys
+                for key in ("sentence", "raw", "sent", "text"):
+                    if key in inst and inst[key]:
+                        fallback_label = QLabel(f'<i>"{inst[key]}"</i>')
+                        fallback_label.setWordWrap(True)
+                        vbox.addWidget(fallback_label)
+                        break
+                else:
+                    vbox.addWidget(QLabel("<i>No sentence available</i>"))
 
             self.layout.addWidget(frame)
+
+
+class TestSplitWindow(QMainWindow):
+    """A separate window dedicated to viewing the test split."""
+
+    def __init__(self, test_images):
+        super().__init__()
+        self.images = test_images
+        self.current_index = 0
+
+        self.setWindowTitle(f"Test Split Viewer ({len(test_images)} images)")
+        self.setGeometry(150, 150, 1600, 900)
+        self.setStyleSheet("background-color: #e9ecef;")
+
+        # --- Main Layout ---
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QHBoxLayout(central_widget)
+        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+
+        # --- Left Panel (Image) ---
+        self.image_display = ImageDisplay()
+
+        # --- Right Panel (Annotations) - Use TestAnnotationPanel ---
+        self.annotation_panel = TestAnnotationPanel()
+
+        # --- Splitter ---
+        main_layout.addWidget(self.image_display, 65)
+        main_layout.addWidget(self.annotation_panel, 35)  # --- Controls ---
+        self.setup_controls()
+
+        # --- Initial Load ---
+        self.update_view()
+
+    def setup_controls(self):
+        controls_toolbar = self.addToolBar("Controls")
+        controls_toolbar.setMovable(False)
+        controls_toolbar.setStyleSheet("QToolBar { background-color: #ffc107; padding: 5px; }")  # Yellow to distinguish
+
+        # Add label indicating this is test split
+        test_label = QLabel("🧪 TEST SPLIT ONLY")
+        test_label.setStyleSheet("font-weight: bold; color: #856404; padding: 0 10px;")
+        controls_toolbar.addWidget(test_label)
+
+        controls_toolbar.addSeparator()
+
+        btn_prev = QPushButton("⬅️ Previous")
+        btn_prev.clicked.connect(self.prev_image)
+        controls_toolbar.addWidget(btn_prev)
+
+        self.status_label = QLabel()
+        self.status_label.setStyleSheet("padding: 0 10px;")
+        controls_toolbar.addWidget(self.status_label)
+
+        btn_next = QPushButton("Next ➡️")
+        btn_next.clicked.connect(self.next_image)
+        controls_toolbar.addWidget(btn_next)
+
+        controls_toolbar.addSeparator()
+
+        controls_toolbar.addWidget(QLabel("Jump to Index: "))
+        self.jump_input = QLineEdit()
+        self.jump_input.setFixedWidth(80)
+        self.jump_input.returnPressed.connect(self.jump_to_image)
+        controls_toolbar.addWidget(self.jump_input)
+
+        btn_zoom_in = QPushButton("➕ Zoom In")
+        btn_zoom_in.clicked.connect(self.zoom_in)
+
+        btn_zoom_out = QPushButton("➖ Zoom Out")
+        btn_zoom_out.clicked.connect(self.zoom_out)
+
+        controls_toolbar.addSeparator()
+        controls_toolbar.addWidget(btn_zoom_in)
+        controls_toolbar.addWidget(btn_zoom_out)
+
+        # View mode controls
+        controls_toolbar.addSeparator()
+        self.btn_fit = QPushButton("Fit to Window")
+        self.btn_fit.setCheckable(True)
+        self.btn_fit.setChecked(False)
+        self.btn_fit.toggled.connect(self.toggle_fit)
+        controls_toolbar.addWidget(self.btn_fit)
+
+        btn_reset = QPushButton("100% (1:1)")
+        btn_reset.clicked.connect(self.reset_to_original)
+        controls_toolbar.addWidget(btn_reset)
+
+    def update_view(self):
+        if not self.images:
+            self.status_label.setText("No test images available")
+            return
+
+        image_data = self.images[self.current_index]
+        self.image_display.set_image(image_data)
+        self.annotation_panel.update_content(image_data)
+        self.status_label.setText(f"Test Image {self.current_index + 1} / {len(self.images)}")
+        self.jump_input.setText(str(self.current_index + 1))
+
+    def prev_image(self):
+        self.current_index = (self.current_index - 1 + len(self.images)) % len(self.images)
+        self.update_view()
+
+    def next_image(self):
+        self.current_index = (self.current_index + 1) % len(self.images)
+        self.update_view()
+
+    def jump_to_image(self):
+        try:
+            idx = int(self.jump_input.text()) - 1
+            if 0 <= idx < len(self.images):
+                self.current_index = idx
+                self.update_view()
+            else:
+                print(f"Index out of range. Please enter a number between 1 and {len(self.images)}.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    def zoom_in(self):
+        self.image_display.scale_factor *= 1.2
+        self.image_display.update_display()
+
+    def zoom_out(self):
+        self.image_display.scale_factor /= 1.2
+        self.image_display.update_display()
+
+    def toggle_fit(self, checked: bool):
+        self.image_display.set_fit_to_window(checked)
+        self.image_display.update_display()
+
+    def reset_to_original(self):
+        self.image_display.reset_to_original()
+        if self.btn_fit.isChecked():
+            self.btn_fit.setChecked(False)
 
 
 class MainWindow(QMainWindow):
@@ -344,8 +604,10 @@ class MainWindow(QMainWindow):
 
     def __init__(self, images):
         super().__init__()
-        self.images = images
+        self.all_images = images
+        self.images = images  # Currently displayed images
         self.current_index = 0
+        self.current_split = "all"  # Track current filter
 
         self.setWindowTitle("Annotation Visualizer")
         self.setGeometry(100, 100, 1600, 900)
@@ -379,6 +641,15 @@ class MainWindow(QMainWindow):
         controls_toolbar = self.addToolBar("Controls")
         controls_toolbar.setMovable(False)
         controls_toolbar.setStyleSheet("QToolBar { background-color: #dee2e6; padding: 5px; }")
+
+        # --- Split Filter ---
+        controls_toolbar.addWidget(QLabel(" Split: "))
+        self.split_combo = QComboBox()
+        self.split_combo.addItems(["All", "Train", "Val", "Test"])
+        self.split_combo.currentTextChanged.connect(self.filter_by_split)
+        controls_toolbar.addWidget(self.split_combo)
+
+        controls_toolbar.addSeparator()
 
         btn_prev = QPushButton("⬅️ Previous")
         btn_prev.clicked.connect(self.prev_image)
@@ -422,12 +693,45 @@ class MainWindow(QMainWindow):
         btn_reset.clicked.connect(self.reset_to_original)
         controls_toolbar.addWidget(btn_reset)
 
+        # Open test split in new window
+        controls_toolbar.addSeparator()
+        btn_test_window = QPushButton("🪟 Open Test Split Window")
+        btn_test_window.clicked.connect(self.open_test_window)
+        controls_toolbar.addWidget(btn_test_window)
+
+        self.test_window = None  # Store reference to test window
+
     def update_view(self):
+        if not self.images:
+            self.status_label.setText("No images in current filter")
+            return
+
         image_data = self.images[self.current_index]
         self.image_display.set_image(image_data)
         self.annotation_panel.update_content(image_data)
-        self.status_label.setText(f"Image {self.current_index + 1} / {len(self.images)}")
+
+        split_info = f" [{self.current_split.upper()}]" if self.current_split != "all" else ""
+        self.status_label.setText(f"Image {self.current_index + 1} / {len(self.images)}{split_info}")
         self.jump_input.setText(str(self.current_index + 1))
+
+    def filter_by_split(self, split_text):
+        """Filter images by split (All/Train/Val/Test)."""
+        split = split_text.lower()
+        self.current_split = split
+
+        if split == "all":
+            self.images = self.all_images
+        else:
+            self.images = [img for img in self.all_images if img.get("split", "").lower() == split]
+
+        # Reset to first image in filtered set
+        self.current_index = 0
+
+        if self.images:
+            self.update_view()
+        else:
+            self.status_label.setText(f"No images found for split: {split_text}")
+            print(f"No images found for split: {split_text}")
 
     def prev_image(self):
         self.current_index = (self.current_index - 1 + len(self.images)) % len(self.images)
@@ -467,16 +771,29 @@ class MainWindow(QMainWindow):
         if self.btn_fit.isChecked():
             self.btn_fit.setChecked(False)
 
+    def open_test_window(self):
+        """Open a separate window showing only the test split."""
+        test_images = [img for img in self.all_images if img.get("split", "").lower() == "test"]
+
+        if not test_images:
+            print("No test images found!")
+            self.status_label.setText("No test images found!")
+            return
+
+        # Create new window
+        self.test_window = TestSplitWindow(test_images)
+        self.test_window.show()
+        print(f"Opened test split window with {len(test_images)} images")
+
 
 def main():
     try:
         images = load_annotations()
         app = QApplication(sys.argv)
 
-        # Apply a modern stylesheet
         app.setStyleSheet("""
             QPushButton {
-                background-color: #007bff; color: white;
+                background-color: #007bff; color: #000000;
                 border-radius: 5px; padding: 8px 12px;
                 font-size: 14px;
             }
