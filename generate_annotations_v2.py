@@ -402,11 +402,24 @@ def main():
                 instance_sentences.append({"ann_id": ann["id"], "category_id": ann["category_id"], "sentence": sentence})
             else:
                 tc = test_changes_by_ann_id.get(ann["id"])
-                # omit crop names in test-set sentences
-                sentence, _, _ = generate_single_referring_expression(
+                # Generate original sentence (without changes)
+                original_sentence, _, _ = generate_single_referring_expression(
+                    category, crop_name, bbox, img["width"], img["height"], test_change=None, include_crop_name=False
+                )
+                # Generate modified sentence (with changes)
+                modified_sentence, change_type, change_detail = generate_single_referring_expression(
                     category, crop_name, bbox, img["width"], img["height"], test_change=tc, include_crop_name=False
                 )
-                instance_sentences.append({"ann_id": ann["id"], "category_id": ann["category_id"], "sentence": sentence})
+                instance_sentences.append(
+                    {
+                        "ann_id": ann["id"],
+                        "category_id": ann["category_id"],
+                        "original_sentence": original_sentence,
+                        "test_sentence": modified_sentence,
+                        "change_type": change_type,
+                        "change_detail": change_detail,
+                    }
+                )
 
         if instance_sentences:
             image_entry["instance_sentences"] = instance_sentences
