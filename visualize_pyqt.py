@@ -23,9 +23,35 @@ from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QFont
 from PyQt6.QtCore import Qt
 
 # --- Configuration ---
-GREFS_JSON = r"c:\Users\jd138001\Downloads\Data\grefcoco_format\grefs(unc).json"
-INSTANCES_JSON = r"c:\Users\jd138001\Downloads\Data\grefcoco_format\instances.json"
-IMAGES_DIR = r"c:\Users\jd138001\Downloads\data\images"
+# Try multiple likely locations so the visualizer works whether annotations
+# live under the 'Data/grefcoco_format' folder or directly in this workspace.
+_CANDIDATE_GREFS = [
+    r"c:\\Users\\jd138001\\Downloads\\Combination\\grefs(unc).json",
+    r"c:\\Users\\jd138001\\Downloads\\Data\\grefcoco_format\\grefs(unc).json",
+]
+_CANDIDATE_INSTANCES = [
+    r"c:\\Users\\jd138001\\Downloads\\Combination\\instances.json",
+    r"c:\\Users\\jd138001\\Downloads\\Data\\grefcoco_format\\instances.json",
+]
+_CANDIDATE_IMAGES = [
+    r"c:\\Users\\jd138001\\Downloads\\data\\images",
+    r"c:\\Users\\jd138001\\Downloads\\Combination\\data\\images",
+]
+
+
+def _resolve_first(paths):
+    for p in paths:
+        try:
+            if os.path.exists(p):
+                return p
+        except Exception:
+            continue
+    return paths[0]
+
+
+GREFS_JSON = _resolve_first(_CANDIDATE_GREFS)
+INSTANCES_JSON = _resolve_first(_CANDIDATE_INSTANCES)
+IMAGES_DIR = _resolve_first(_CANDIDATE_IMAGES)
 CATEGORY_NAMES = {1: "crop", 2: "weed"}
 CATEGORY_COLORS = {
     "crop": QColor(40, 167, 69),  # A nice, modern green
@@ -36,26 +62,53 @@ CATEGORY_COLORS = {
 
 # --- Data Loading ---
 def load_annotations():
-    """Load and merge gRefCOCO and COCO instance annotations."""
+    """Load and merge gRefCOCO and COCO instance annotations.
+
+    This function is defensive about file locations and sentence key variants
+    (e.g. 'sentence', 'raw', 'sent', 'text'). For the test split it guarantees
+    that each instance will have a 'test sentence' key and an 'original_sentence'
+    and change metadata so the UI panels can always display modifications.
+    """
     print(f"Loading grefs from {GREFS_JSON}...")
-    with open(GREFS_JSON, "r") as f:
+    with open(GREFS_JSON, "r", encoding="utf-8") as f:
         grefs_data = json.load(f)
-    print(f"✅ Loaded {len(grefs_data['images'])} images")
+    print(f"✅ Loaded {len(grefs_data.get('images', []))} images")
 
     print(f"Loading instances from {INSTANCES_JSON}...")
-    with open(INSTANCES_JSON, "r") as f:
+    with open(INSTANCES_JSON, "r", encoding="utf-8") as f:
         instances_data = json.load(f)
-    print(f"✅ Loaded {len(instances_data['annotations'])} annotations")
+    print(f"✅ Loaded {len(instances_data.get('annotations', []))} annotations")
 
-    ann_id_to_bbox = {ann["id"]: ann for ann in instances_data["annotations"]}
+    ann_id_to_bbox = {ann["id"]: ann for ann in instances_data.get("annotations", [])}
 
-    for img in grefs_data["images"]:
+    # Helper to get the best sentence string for an instance
+    def _get_sentence(inst):
+        for k in ("sentence", "raw", "sent", "text"):
+            v = inst.get(k)
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+            # sometimes sentences are dicts like {"raw": "..."}
+            if isinstance(v, dict) and v.get("raw"):
+                return str(v.get("raw")).strip()
+        return None
+
+    for img in grefs_data.get("images", []):
+        # Attach bbox, category_name and crop_name to instances when possible
         for inst in img.get("instance_sentences", []):
-            ann_id = inst["ann_id"]
+            ann_id = inst.get("ann_id")
             if ann_id in ann_id_to_bbox:
-                inst["bbox"] = ann_id_to_bbox[ann_id]["bbox"]
-                inst["category_name"] = CATEGORY_NAMES.get(inst["category_id"], "unknown")
-    return grefs_data["images"]
+                ann = ann_id_to_bbox[ann_id]
+                inst["bbox"] = ann.get("bbox", inst.get("bbox"))
+                inst["category_name"] = CATEGORY_NAMES.get(inst.get("category_id"), inst.get("category_name", "unknown"))
+                inst["crop_name"] = ann.get("crop_name", inst.get("crop_name", "unknown"))
+
+            # Normalize/ensure sentence fields exist for later processing
+            sentence = _get_sentence(inst)
+            if sentence:
+                # keep original 'sentence' key for backward compatibility
+                inst.setdefault("sentence", sentence)
+
+    return grefs_data.get("images", [])
 
 
 # --- PyQt6 Components ---
@@ -84,6 +137,10 @@ class ImageDisplay(QLabel):
         img_path = os.path.join(IMAGES_DIR, image_data["file_name"])
         if os.path.exists(img_path):
             self.pixmap = QPixmap(img_path)
+            if self.pixmap.isNull():
+                self.setText(f"Failed to load image:\n{image_data['file_name']}")
+                self.pixmap = None
+                return
             # Reset view for new image, respect current mode
             self.scale_factor = 1.0
             self.pan_x = 0.0
@@ -122,7 +179,7 @@ class ImageDisplay(QLabel):
 
     def paintEvent(self, event):
         super().paintEvent(event)
-        if not self.pixmap:
+        if not self.pixmap or self.width() == 0 or self.height() == 0:
             return
 
         painter = QPainter(self)
@@ -310,6 +367,36 @@ class AnnotationPanel(QScrollArea):
                 sent_label.setWordWrap(True)
                 self.layout.addWidget(sent_label)
 
+        # --- Crop Distribution Summary ---
+        # Count crop types in this image
+        from collections import Counter
+
+        crop_counts = Counter()
+        for inst in instances:
+            if inst.get("category_name") == "crop":
+                crop_name = inst.get("crop_name", "unknown")
+                crop_counts[crop_name] += 1
+
+        weed_count = sum(1 for inst in instances if inst.get("category_name") == "weed")
+
+        if crop_counts or weed_count > 0:
+            summary_title = QLabel("Crop Distribution")
+            summary_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #1976D2; margin-top: 20px; margin-bottom: 10px;")
+            self.layout.addWidget(summary_title)
+
+            # Create summary text
+            summary_parts = []
+            for crop_name, count in sorted(crop_counts.items()):
+                summary_parts.append(f"<b>{crop_name}:</b> {count}")
+            if weed_count > 0:
+                summary_parts.append(f"<b>Weeds:</b> {weed_count}")
+
+            summary_text = " | ".join(summary_parts)
+            summary_label = QLabel(summary_text)
+            summary_label.setWordWrap(True)
+            summary_label.setStyleSheet("padding: 10px; background-color: #E3F2FD; border-radius: 4px; color: #0D47A1;")
+            self.layout.addWidget(summary_label)
+
         # --- Instances ---
         instances_title = QLabel(f"Instances ({len(instances)})")
         instances_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #343a40; margin-top: 20px; margin-bottom: 10px;")
@@ -317,6 +404,7 @@ class AnnotationPanel(QScrollArea):
 
         for idx, inst in enumerate(instances):
             category = inst.get("category_name", "unknown")
+            crop_name = inst.get("crop_name", "unknown")
             color = CATEGORY_COLORS[category].name()
 
             frame = QFrame()
@@ -325,12 +413,77 @@ class AnnotationPanel(QScrollArea):
 
             vbox = QVBoxLayout(frame)
 
-            header = f"<b>[{idx + 1}] {category.upper()}</b>"
+            # Create header with crop type for crops, category for weeds
+            if category == "crop":
+                header = f"<b>[{idx + 1}] {crop_name.upper()}</b>"
+            else:
+                header = f"<b>[{idx + 1}] {category.upper()}</b>"
             vbox.addWidget(QLabel(header))
+
+            # Show annotation ID
+            ann_id = inst.get("ann_id", "N/A")
+            ann_id_label = QLabel(f"<small>Ann ID: {ann_id}</small>")
+            ann_id_label.setStyleSheet("color: #6c757d;")
+            vbox.addWidget(ann_id_label)
 
             bbox = inst.get("bbox", ["N/A"] * 4)
             bbox_text = f"BBox: ({bbox[0]:.0f}, {bbox[1]:.0f}, {bbox[2]:.0f}, {bbox[3]:.0f})"
             vbox.addWidget(QLabel(bbox_text))
+
+            # Show sentence for this instance
+            # Check if this is a test split image to show test sentence information
+            is_test_split = image_data.get("split", "").lower() == "test"
+
+            if is_test_split:
+                # For test split, show test sentence, original sentence, and changes
+                original_sentence = inst.get("original_sentence")
+                test_sentence = inst.get("test_sentence")
+
+                if test_sentence:
+                    test_label = QLabel(f'<b>Test Sentence:</b> <i>"{test_sentence}"</i>')
+                    test_label.setWordWrap(True)
+                    test_label.setStyleSheet("color: #cc0000; margin-top: 5px; font-weight: bold;")
+                    vbox.addWidget(test_label)
+
+                    # Show original sentence if it exists and is different
+                    if original_sentence and original_sentence != test_sentence:
+                        orig_label = QLabel(f'<b>Original Sentence:</b> <i>"{original_sentence}"</i>')
+                        orig_label.setWordWrap(True)
+                        orig_label.setStyleSheet("color: #006600; margin-top: 5px; font-weight: bold;")
+                        vbox.addWidget(orig_label)
+
+                    # Show change metadata if available
+                    if inst.get("change_type"):
+                        change_detail = inst.get("change_detail", {})
+                        change_text = f"<small><b>Change:</b> {inst['change_type']}"
+                        if change_detail:
+                            change_text += f" ({change_detail.get('attribute', 'N/A')}: "
+                            change_text += f"{change_detail.get('from', 'N/A')} → {change_detail.get('to', 'N/A')})"
+                        change_text += "</small>"
+                        change_label = QLabel(change_text)
+                        change_label.setStyleSheet("color: #856404; margin-top: 3px;")
+                        vbox.addWidget(change_label)
+                else:
+                    # Fallback to regular sentence for test items without modifications
+                    sentence = inst.get("sentence") or inst.get("original_sentence") or inst.get("raw") or inst.get("sent") or inst.get("text")
+                    if sentence:
+                        sent_label = QLabel(f'<b>Sentence:</b> <i>"{sentence}"</i>')
+                        sent_label.setWordWrap(True)
+                        sent_label.setStyleSheet("color: #006600; margin-top: 5px;")
+                        vbox.addWidget(sent_label)
+                    else:
+                        vbox.addWidget(QLabel("<i>No sentence available</i>"))
+            else:
+                # Regular handling for train/val splits
+                sentence = inst.get("sentence") or inst.get("original_sentence") or inst.get("raw") or inst.get("sent") or inst.get("text")
+                if sentence:
+                    sent_label = QLabel(f'<b>Sentence:</b> <i>"{sentence}"</i>')
+                    sent_label.setWordWrap(True)
+                    sent_label.setStyleSheet("color: #006600; margin-top: 5px;")
+                    vbox.addWidget(sent_label)
+                else:
+                    vbox.addWidget(QLabel("<i>No sentence available</i>"))
+
             self.layout.addWidget(frame)
 
 
@@ -400,6 +553,36 @@ class TestAnnotationPanel(QScrollArea):
                 sent_label.setWordWrap(True)
                 self.layout.addWidget(sent_label)
 
+        # --- Crop Distribution Summary ---
+        # Count crop types in this image
+        from collections import Counter
+
+        crop_counts = Counter()
+        for inst in instances:
+            if inst.get("category_name") == "crop":
+                crop_name = inst.get("crop_name", "unknown")
+                crop_counts[crop_name] += 1
+
+        weed_count_detail = sum(1 for inst in instances if inst.get("category_name") == "weed")
+
+        if crop_counts or weed_count_detail > 0:
+            summary_title = QLabel("Crop Distribution")
+            summary_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #856404; margin-top: 20px; margin-bottom: 10px;")
+            self.layout.addWidget(summary_title)
+
+            # Create summary text
+            summary_parts = []
+            for crop_name, count in sorted(crop_counts.items()):
+                summary_parts.append(f"<b>{crop_name}:</b> {count}")
+            if weed_count_detail > 0:
+                summary_parts.append(f"<b>Weeds:</b> {weed_count_detail}")
+
+            summary_text = " | ".join(summary_parts)
+            summary_label = QLabel(summary_text)
+            summary_label.setWordWrap(True)
+            summary_label.setStyleSheet("padding: 10px; background-color: #FFF3CD; border-radius: 4px; color: #856404;")
+            self.layout.addWidget(summary_label)
+
         # --- Instances ---
         instances_title = QLabel(f"Instances ({len(instances)})")
         instances_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #856404; margin-top: 20px; margin-bottom: 10px;")
@@ -407,6 +590,7 @@ class TestAnnotationPanel(QScrollArea):
 
         for idx, inst in enumerate(instances):
             category = inst.get("category_name", "unknown")
+            crop_name = inst.get("crop_name", "unknown")
             color = CATEGORY_COLORS[category].name()
 
             frame = QFrame()
@@ -415,8 +599,18 @@ class TestAnnotationPanel(QScrollArea):
 
             vbox = QVBoxLayout(frame)
 
-            header = f"<b>[{idx + 1}] {category.upper()}</b>"
+            # Create header with crop type for crops, category for weeds
+            if category == "crop":
+                header = f"<b>[{idx + 1}] {crop_name.upper()}</b>"
+            else:
+                header = f"<b>[{idx + 1}] {category.upper()}</b>"
             vbox.addWidget(QLabel(header))
+
+            # Show annotation ID
+            ann_id = inst.get("ann_id", "N/A")
+            ann_id_label = QLabel(f"<small>Ann ID: {ann_id}</small>")
+            ann_id_label.setStyleSheet("color: #856404;")
+            vbox.addWidget(ann_id_label)
 
             bbox = inst.get("bbox", ["N/A"] * 4)
             bbox_text = f"BBox: ({bbox[0]:.0f}, {bbox[1]:.0f}, {bbox[2]:.0f}, {bbox[3]:.0f})"
@@ -424,38 +618,49 @@ class TestAnnotationPanel(QScrollArea):
 
             # Show BOTH original_sentence and test sentence for test split
             original_sentence = inst.get("original_sentence")
-            test_sentence = inst.get("test sentence")  # Note: space in key name
+            test_sentence = inst.get("test_sentence")  # Note: underscore in key name
+            regular_sentence = inst.get("sentence")  # For non-test items
 
-            if original_sentence:
-                orig_label = QLabel(f'<b>Original Sentence:</b> <i>"{original_sentence}"</i>')
-                orig_label.setWordWrap(True)
-                orig_label.setStyleSheet("color: #006600; margin-top: 5px; font-weight: bold;")
-                vbox.addWidget(orig_label)
-
+            # For test split items, always show the test sentence prominently
             if test_sentence:
                 test_label = QLabel(f'<b>Test Sentence:</b> <i>"{test_sentence}"</i>')
                 test_label.setWordWrap(True)
                 test_label.setStyleSheet("color: #cc0000; margin-top: 5px; font-weight: bold;")
                 vbox.addWidget(test_label)
 
-            # Show change metadata if available
-            if inst.get("change_type"):
-                change_detail = inst.get("change_detail", {})
-                change_text = f"<small><b>Change:</b> {inst['change_type']}"
-                if change_detail:
-                    change_text += f" ({change_detail.get('attribute', 'N/A')}: "
-                    change_text += f"{change_detail.get('from', 'N/A')} → {change_detail.get('to', 'N/A')})"
-                change_text += "</small>"
-                change_label = QLabel(change_text)
-                change_label.setStyleSheet("color: #856404; margin-top: 3px;")
-                vbox.addWidget(change_label)
+                # Show original sentence if it exists and is different
+                if original_sentence and original_sentence != test_sentence:
+                    orig_label = QLabel(f'<b>Original Sentence:</b> <i>"{original_sentence}"</i>')
+                    orig_label.setWordWrap(True)
+                    orig_label.setStyleSheet("color: #006600; margin-top: 5px; font-weight: bold;")
+                    vbox.addWidget(orig_label)
 
-            if not original_sentence and not test_sentence:
-                # Fallback to other keys
-                for key in ("sentence", "raw", "sent", "text"):
+                # Show change metadata if available
+                if inst.get("change_type"):
+                    change_detail = inst.get("change_detail", {})
+                    change_text = f"<small><b>Change:</b> {inst['change_type']}"
+                    if change_detail:
+                        change_text += f" ({change_detail.get('attribute', 'N/A')}: "
+                        change_text += f"{change_detail.get('from', 'N/A')} → {change_detail.get('to', 'N/A')})"
+                    change_text += "</small>"
+                    change_label = QLabel(change_text)
+                    change_label.setStyleSheet("color: #856404; margin-top: 3px;")
+                    vbox.addWidget(change_label)
+
+            # Regular sentence (for train/val or test items without modifications)
+            elif regular_sentence:
+                sent_label = QLabel(f'<b>Sentence:</b> <i>"{regular_sentence}"</i>')
+                sent_label.setWordWrap(True)
+                sent_label.setStyleSheet("color: #006600; margin-top: 5px;")
+                vbox.addWidget(sent_label)
+
+            # Fallback to other keys
+            else:
+                for key in ("raw", "sent", "text"):
                     if key in inst and inst[key]:
-                        fallback_label = QLabel(f'<i>"{inst[key]}"</i>')
+                        fallback_label = QLabel(f'<b>Sentence:</b> <i>"{inst[key]}"</i>')
                         fallback_label.setWordWrap(True)
+                        fallback_label.setStyleSheet("color: #006600; margin-top: 5px;")
                         vbox.addWidget(fallback_label)
                         break
                 else:
