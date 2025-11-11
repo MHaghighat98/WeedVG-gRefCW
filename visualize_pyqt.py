@@ -6,21 +6,118 @@ built with PyQt6 for a robust and responsive user experience.
 import sys
 import json
 import os
-from PyQt6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QWidget,
-    QLabel,
-    QVBoxLayout,
-    QHBoxLayout,
-    QPushButton,
-    QLineEdit,
-    QScrollArea,
-    QFrame,
-    QComboBox,
-)
-from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QFont
-from PyQt6.QtCore import Qt
+
+# Try multiple Qt bindings: prefer PyQt6, fall back to PyQt5 or PySide6
+QT_BACKEND = None
+try:
+    from PyQt6.QtWidgets import (
+        QApplication,
+        QMainWindow,
+        QWidget,
+        QLabel,
+        QVBoxLayout,
+        QHBoxLayout,
+        QPushButton,
+        QLineEdit,
+        QScrollArea,
+        QFrame,
+        QComboBox,
+    )
+    from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QFont
+    from PyQt6.QtCore import Qt
+
+    QT_BACKEND = "PyQt6"
+except Exception:
+    try:
+        from PyQt5.QtWidgets import (
+            QApplication,
+            QMainWindow,
+            QWidget,
+            QLabel,
+            QVBoxLayout,
+            QHBoxLayout,
+            QPushButton,
+            QLineEdit,
+            QScrollArea,
+            QFrame,
+            QComboBox,
+        )
+        from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QFont
+        from PyQt5.QtCore import Qt
+
+        QT_BACKEND = "PyQt5"
+    except Exception:
+        try:
+            from PySide6.QtWidgets import (
+                QApplication,
+                QMainWindow,
+                QWidget,
+                QLabel,
+                QVBoxLayout,
+                QHBoxLayout,
+                QPushButton,
+                QLineEdit,
+                QScrollArea,
+                QFrame,
+                QComboBox,
+            )
+            from PySide6.QtGui import QPixmap, QPainter, QPen, QColor, QFont
+            from PySide6.QtCore import Qt
+
+            QT_BACKEND = "PySide6"
+        except Exception:
+            raise ImportError("This script requires PyQt6, PyQt5 or PySide6. Install one (e.g. pip install PyQt6)")
+
+# Compatibility aliases for enum/name differences across bindings
+if QT_BACKEND == "PyQt6" or QT_BACKEND == "PySide6":
+    ALIGN_CENTER = Qt.AlignmentFlag.AlignCenter
+    ALIGN_TOP = Qt.AlignmentFlag.AlignTop
+    MOUSE_LEFT = Qt.MouseButton.LeftButton
+    WHITE = Qt.GlobalColor.white
+    # QPainter.RenderHint may be nested; get SmoothPixmapTransform safely
+    try:
+        RENDER_SMOOTH = QPainter.RenderHint.SmoothPixmapTransform
+    except Exception:
+        RENDER_SMOOTH = QPainter.SmoothPixmapTransform
+    try:
+        FONT_WEIGHT_BOLD = QFont.Weight.Bold
+    except Exception:
+        FONT_WEIGHT_BOLD = QFont.Bold
+else:
+    # PyQt5
+    ALIGN_CENTER = Qt.AlignCenter
+    ALIGN_TOP = Qt.AlignTop
+    MOUSE_LEFT = Qt.LeftButton
+    # Qt.GlobalColor may not exist on older PyQt5 builds; use Qt.white fallback
+    WHITE = getattr(Qt, "white", getattr(Qt, "GlobalColor", None) or None)
+    RENDER_SMOOTH = getattr(QPainter, "SmoothPixmapTransform", None)
+    FONT_WEIGHT_BOLD = getattr(QFont, "Bold", 75)
+
+
+def _event_pos(event):
+    """Return a QPoint/QPointF-like object with x() and y() methods for mouse/wheel events.
+
+    PyQt6 uses event.position() (QPointF), PyQt5 uses event.pos() (QPoint). This helper
+    normalizes both so the rest of the code can call .x()/.y().
+    """
+    if hasattr(event, "position"):
+        try:
+            return event.position()
+        except Exception:
+            pass
+    if hasattr(event, "pos"):
+        return event.pos()
+
+    # Fallback: construct a simple object with x/y methods returning 0
+    class _Z:
+        def x(self):
+            return 0
+
+        def y(self):
+            return 0
+
+    return _Z()
+
 
 # --- Configuration ---
 # Try multiple likely locations so the visualizer works whether annotations
@@ -33,10 +130,7 @@ _CANDIDATE_INSTANCES = [
     r"c:\\Users\\jd138001\\Downloads\\Combination\\instances.json",
     r"c:\\Users\\jd138001\\Downloads\\Data\\grefcoco_format\\instances.json",
 ]
-_CANDIDATE_IMAGES = [
-    r"c:\\Users\\jd138001\\Downloads\\data\\images",
-    r"c:\\Users\\jd138001\\Downloads\\Combination\\data\\images",
-]
+_CANDIDATE_IMAGES = [r"C:\\Users\\jd138001\\Downloads\\data\\images"]
 
 
 def _resolve_first(paths):
@@ -52,6 +146,8 @@ def _resolve_first(paths):
 GREFS_JSON = _resolve_first(_CANDIDATE_GREFS)
 INSTANCES_JSON = _resolve_first(_CANDIDATE_INSTANCES)
 IMAGES_DIR = _resolve_first(_CANDIDATE_IMAGES)
+# Allow the user to override the images directory via environment variable
+IMAGES_DIR = os.environ.get("AGRI_VG_IMAGES_DIR", IMAGES_DIR)
 CATEGORY_NAMES = {1: "crop", 2: "weed"}
 CATEGORY_COLORS = {
     "crop": QColor(40, 167, 69),  # A nice, modern green
@@ -120,7 +216,7 @@ class ImageDisplay(QLabel):
     def __init__(self):
         super().__init__()
         self.setMinimumSize(600, 400)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setAlignment(ALIGN_CENTER)
         self.setStyleSheet("background-color: #333; border-radius: 5px;")
         self.image_data = None
         self.pixmap = None
@@ -135,12 +231,62 @@ class ImageDisplay(QLabel):
     def set_image(self, image_data):
         self.image_data = image_data
         img_path = os.path.join(IMAGES_DIR, image_data["file_name"])
-        if os.path.exists(img_path):
+        # Debug: verify resolved path and existence. If not found, try searching by basename.
+        try:
+            exists = os.path.exists(img_path)
+        except Exception:
+            exists = False
+
+        if not exists:
+            # Try fallback: maybe JSON stores only the basename or a different relative path
+            basename = os.path.basename(image_data.get("file_name", ""))
+            found = None
+            try:
+                for root, _, files in os.walk(IMAGES_DIR):
+                    if basename in files:
+                        found = os.path.join(root, basename)
+                        break
+            except Exception:
+                found = None
+
+            if found:
+                print(f"Image not at '{img_path}', found by basename at '{found}'")
+                img_path = found
+                exists = True
+            else:
+                print(f"Image file not found: attempted '{img_path}' (exists={exists})")
+
+        if exists:
             self.pixmap = QPixmap(img_path)
             if self.pixmap.isNull():
-                self.setText(f"Failed to load image:\n{image_data['file_name']}")
-                self.pixmap = None
-                return
+                print(f"QPixmap loaded but isNull for path: {img_path}; attempting Pillow fallback")
+                # Try Pillow fallback: open with PIL, save to PNG bytes, and load into QPixmap
+                try:
+                    from io import BytesIO
+                    from PIL import Image
+
+                    pil_img = Image.open(img_path).convert("RGBA")
+                    buf = BytesIO()
+                    pil_img.save(buf, format="PNG")
+                    data = buf.getvalue()
+                    pm = QPixmap()
+                    loaded = pm.loadFromData(data)
+                    if loaded and not pm.isNull():
+                        self.pixmap = pm
+                        print(f"Pillow->QPixmap succeeded for {img_path} (size {self.pixmap.width()}x{self.pixmap.height()})")
+                    else:
+                        print(f"Pillow fallback failed to create QPixmap for {img_path}")
+                        self.setText(f"Failed to load image:\n{image_data['file_name']}")
+                        self.pixmap = None
+                        return
+                except Exception as e:
+                    print(f"Pillow fallback error for {img_path}: {e}")
+                    self.setText(f"Failed to load image:\n{image_data['file_name']}")
+                    self.pixmap = None
+                    return
+            else:
+                print(f"Loaded QPixmap directly for {img_path} (size {self.pixmap.width()}x{self.pixmap.height()})")
+
             # Reset view for new image, respect current mode
             self.scale_factor = 1.0
             self.pan_x = 0.0
@@ -183,7 +329,15 @@ class ImageDisplay(QLabel):
             return
 
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
+        # use compatibility alias for smooth transform
+        try:
+            painter.setRenderHint(RENDER_SMOOTH, True)
+        except Exception:
+            # fallback to original (some bindings accept the enum differently)
+            try:
+                painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
+            except Exception:
+                pass
 
         scale = self._effective_scale()
         base_x0, base_y0 = self._image_origin(scale)
@@ -211,8 +365,8 @@ class ImageDisplay(QLabel):
             # Label background and text
             label_w, label_h = 24, 18
             painter.fillRect(int(rx), int(ry) - label_h, label_w, label_h, pen.color())
-            painter.setPen(Qt.GlobalColor.white)
-            painter.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+            painter.setPen(WHITE)
+            painter.setFont(QFont("Arial", 10, FONT_WEIGHT_BOLD))
             painter.drawText(int(rx) + 6, int(ry) - 4, str(idx + 1))
 
     def resizeEvent(self, event):
@@ -236,19 +390,26 @@ class ImageDisplay(QLabel):
         self.update()
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == MOUSE_LEFT:
             self._panning = True
-            self._last_pos = event.position()
+            self._last_pos = _event_pos(event)
             event.accept()
         else:
             event.ignore()
 
     def mouseMoveEvent(self, event):
         if self._panning and self._last_pos is not None:
-            cur = event.position()
-            delta = cur - self._last_pos
-            self.pan_x += float(delta.x())
-            self.pan_y += float(delta.y())
+            cur = _event_pos(event)
+            try:
+                delta = cur - self._last_pos
+                dx = float(delta.x())
+                dy = float(delta.y())
+            except Exception:
+                # Fall back to manual subtraction if types differ
+                dx = float(cur.x()) - float(self._last_pos.x())
+                dy = float(cur.y()) - float(self._last_pos.y())
+            self.pan_x += dx
+            self.pan_y += dy
             self._last_pos = cur
             self.update()
             event.accept()
@@ -256,7 +417,7 @@ class ImageDisplay(QLabel):
             event.ignore()
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == MOUSE_LEFT:
             self._panning = False
             self._last_pos = None
             event.accept()
@@ -267,7 +428,7 @@ class ImageDisplay(QLabel):
         """Zoom with mouse wheel around the cursor position."""
         if not self.pixmap:
             return
-        cursor_pos = event.position()
+        cursor_pos = _event_pos(event)
         cx, cy = float(cursor_pos.x()), float(cursor_pos.y())
 
         # Current
@@ -310,7 +471,7 @@ class AnnotationPanel(QScrollArea):
 
         self.container = QWidget()
         self.layout = QVBoxLayout(self.container)
-        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.layout.setAlignment(ALIGN_TOP)
         self.setWidget(self.container)
 
     def update_content(self, image_data):
@@ -498,7 +659,7 @@ class TestAnnotationPanel(QScrollArea):
 
         self.container = QWidget()
         self.layout = QVBoxLayout(self.container)
-        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.layout.setAlignment(ALIGN_TOP)
         self.setWidget(self.container)
 
     def update_content(self, image_data):
@@ -854,6 +1015,19 @@ class MainWindow(QMainWindow):
         self.split_combo.currentTextChanged.connect(self.filter_by_split)
         controls_toolbar.addWidget(self.split_combo)
 
+        # --- Search box ---
+        controls_toolbar.addSeparator()
+        controls_toolbar.addWidget(QLabel(" Search: "))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("filename contains...")
+        self.search_input.setFixedWidth(220)
+        self.search_input.returnPressed.connect(self.search_image)
+        controls_toolbar.addWidget(self.search_input)
+
+        btn_find = QPushButton("Find")
+        btn_find.clicked.connect(self.search_image)
+        controls_toolbar.addWidget(btn_find)
+
         controls_toolbar.addSeparator()
 
         btn_prev = QPushButton("⬅️ Previous")
@@ -938,6 +1112,26 @@ class MainWindow(QMainWindow):
             self.status_label.setText(f"No images found for split: {split_text}")
             print(f"No images found for split: {split_text}")
 
+    def search_image(self):
+        """Search current images by filename (case-insensitive contains) and jump to first match."""
+        query = self.search_input.text().strip().lower()
+        if not query:
+            self.status_label.setText("Enter search text (filename contains)...")
+            return
+
+        # Search within currently filtered images to respect split selection
+        for idx, img in enumerate(self.images):
+            fname = str(img.get("file_name", "")).lower()
+            if query in fname:
+                self.current_index = idx
+                self.update_view()
+                self.status_label.setText(f"Found '{query}' -> {img.get('file_name')}")
+                return
+
+        # Not found
+        self.status_label.setText(f"No image filename contains: '{query}'")
+        print(f"Search: no match for '{query}' in current images ({len(self.images)})")
+
     def prev_image(self):
         self.current_index = (self.current_index - 1 + len(self.images)) % len(self.images)
         self.update_view()
@@ -994,6 +1188,16 @@ class MainWindow(QMainWindow):
 def main():
     try:
         images = load_annotations()
+        # Debug: print resolved images directory and a short sample listing
+        try:
+            print(f"Resolved IMAGES_DIR = {IMAGES_DIR}")
+            if os.path.isdir(IMAGES_DIR):
+                sample = os.listdir(IMAGES_DIR)[:10]
+                print(f"Sample files in IMAGES_DIR ({len(sample)} shown): {sample}")
+            else:
+                print(f"IMAGES_DIR does not exist: {IMAGES_DIR}")
+        except Exception as e:
+            print(f"Could not list IMAGES_DIR ({IMAGES_DIR}): {e}")
         app = QApplication(sys.argv)
 
         app.setStyleSheet("""
