@@ -25,7 +25,7 @@ versions"). Therefore:
 | Source/code (model + eval) | ✅ Yes | This repo | Apache-2.0 |
 | **Images** (`data/images/`) | ❌ **No** | Obtained by the user from CropAndWeed | CropAndWeed (non-commercial) |
 
-A helper script (`scripts/build_dataset.py` — **TODO: add**) downloads the CropAndWeed CropOrWeed9
+A helper script (`scripts/build_dataset.py`) downloads the CropAndWeed CropOrWeed9
 images from the official source and arranges them to match `instances.json`.
 
 ---
@@ -89,12 +89,22 @@ images from the official source and arranges them to match `instances.json`.
 
 ## Preprocessing / cleaning / labelling
 
-- See *Annotation pipeline* above. Annotations are stored in a **gRefCOCO-compatible** format:
-  - `instances.json` — COCO-style: `images`, `annotations` (per-instance `bbox`, `segmentation`,
-    `category_id`, `area`), `categories`.
-  - `grefs(unc).json` — referring expressions: per-ref `ref_id`, `image_id`, `split`,
-    `ann_id`(s) (empty list ⇒ no-target/negative), `sentences`, and category/size/position metadata.
-  - **TODO: confirm the exact field names/schema and document each field here.**
+- See *Annotation pipeline* above. The dataset uses two JSON files. **The schema below is verified
+  against the evaluation loaders** (`gRef-CW/eval_weedvg.py` ~L319-415, `eval_baselines.py`):
+  - `instances.json` — **COCO-style** object annotations, joined to the referring expressions by
+    `ann_id`:
+    - `images[]`: `id`, `file_name`, `width`, `height`
+    - `annotations[]`: `id` (this is the `ann_id`), `bbox` = `[x, y, w, h]`, `category_id`,
+      `segmentation`, `area`
+    - `categories[]`: `id`, `name`
+  - `grefs(unc).json` — referring expressions, grouped per image:
+    - `images[]`: `id`, `file_name`, `width`, `height`, `split` (`train`/`val`/`test`), and
+      `instance_sentences[]`
+    - `instance_sentences[]`: `ann_id` (→ an `instances.json` annotation), `category_id`,
+      `sentence` (positive expression; `original_sentence` is used as fallback), and — for test-set
+      negatives — `test_sentence`, `change_type`, `change_detail`. A record carrying a `change_type`
+      **and** a `test_sentence` is a manipulated/negative example; the box comes from the joined
+      `ann_id`.
 
 ## Uses
 
