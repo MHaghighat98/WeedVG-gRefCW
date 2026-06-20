@@ -89,7 +89,7 @@ Baselines:
  Follow their README for installation and checkpoint access.
  
 - MDETR: [ashkamath/mdetr](https://github.com/ashkamath/mdetr).
-- GroundingDINO: [idea-research/groundingdino](https://github.com/idea-research/groundingdino).
+- GroundingDINO-T and GroundingDINO-L: [idea-research/groundingdino](https://github.com/idea-research/groundingdino).
 - SAM3: [facebookresearch/sam3](https://github.com/facebookresearch/sam3).
   
 
