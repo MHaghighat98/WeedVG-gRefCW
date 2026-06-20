@@ -14,8 +14,7 @@ Version 2.0 (see LICENSE).
 The gRef-CW dataset is a separate work and is NOT covered by the Apache
 License:
   * The annotations and Weed-VG checkpoints are licensed under
-    Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
-    (CC BY-NC-SA 4.0).
+    Creative Commons Attribution 4.0 International (CC BY 4.0).
   * The underlying images belong to the CropAndWeed dataset
     (Steininger et al., WACV 2023; AIT) and are provided under its
     non-commercial licence. They are NOT redistributed in this repository.

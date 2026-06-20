@@ -211,10 +211,10 @@ are retained.
 
 It does NOT apply to the gRef-CW dataset:
   * The gRef-CW ANNOTATIONS (referring expressions, bounding boxes,
-    segmentation masks) are released under Creative Commons
-    Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
+    segmentation masks) are released under Creative Commons Attribution 4.0
+    International (CC BY 4.0).
   * The underlying IMAGES are part of the CropAndWeed dataset (AIT), provided
     under its own non-commercial licence, and are NOT redistributed in this
-    repository or on Zenodo. Obtain them from the original source; see
+    repository or on Hugging Face. Obtain them from the original source; see
     DATASHEET.md.
 ------------------------------------------------------------------------------

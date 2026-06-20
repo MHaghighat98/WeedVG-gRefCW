@@ -20,8 +20,8 @@ versions"). Therefore:
 
 | Component | Distributed by us | Where | Licence |
 |---|---|---|---|
-| Annotations (`grefs(unc).json`, `instances.json`: referring expressions, boxes, masks) | ✅ Yes | Hugging Face | CC BY-NC-SA 4.0 |
-| Weed-VG checkpoints (`stage_one.pth`, `stage_two.pth`) | ✅ Yes | Hugging Face | CC BY-NC-SA 4.0 |
+| Annotations (`grefs(unc).json`, `instances.json`: referring expressions, boxes, masks) | ✅ Yes | Hugging Face | CC BY 4.0 |
+| Weed-VG checkpoints (`stage_one.pth`, `stage_two.pth`) | ✅ Yes | Hugging Face | CC BY 4.0 |
 | Source/code (model + eval) | ✅ Yes | This repo | Apache-2.0 |
 | **Images** (`data/images/`) | ❌ **No** | Obtained by the user from CropAndWeed | CropAndWeed (non-commercial) |
 
@@ -117,8 +117,10 @@ images from the official source and arranges them to match `instances.json`.
   instance-level grounding. Benchmark metrics: **Recall@0.5, Top-k Accuracy, mIoU, Neg-Acc**
   (threshold-free GIoU-based negative accuracy). Reference baselines in the paper: **MDETR,
   GroundingDINO-T, GroundingDINO-L, SAM3**.
-- **Out-of-scope / discouraged uses.** **Commercial use is prohibited** (non-commercial licence,
-  see below). Not validated for deployment-grade weed-control decisions without further testing.
+- **Out-of-scope / discouraged uses.** The annotations are CC BY 4.0, but the **images** remain
+  under CropAndWeed's **non-commercial** licence — so commercial use of the assembled dataset is
+  restricted (see Distribution). Not validated for deployment-grade weed-control decisions without
+  further testing.
 - **Known limitations / biases.** Template-generated expressions (limited linguistic diversity);
   crop set limited to 9 CropOrWeed9 categories; geographic/seasonal coverage inherited from
   CropAndWeed; heavy tiny/small-object skew.
@@ -130,7 +132,7 @@ images from the official source and arranges them to match `instances.json`.
   `build_dataset.py` on GitHub (https://github.com/MHaghighat98/WeedVG-gRefCW). Images are **not**
   redistributed — users fetch them from CropAndWeed.
 - **Licence.**
-  - Annotations & checkpoints: **CC BY-NC-SA 4.0** — https://creativecommons.org/licenses/by-nc-sa/4.0/
+  - Annotations & checkpoints: **CC BY 4.0** — https://creativecommons.org/licenses/by/4.0/
   - Code: **Apache-2.0** (see `LICENSE`).
   - Images: governed by the **CropAndWeed licence** (non-commercial); see
     https://github.com/cropandweed/cropandweed-dataset.

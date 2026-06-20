@@ -99,13 +99,14 @@ This repository uses **two** licences, and use of the images is governed by a **
 
 - **Code** (Weed-VG model + gRef-CW evaluation scripts) — **Apache-2.0**, see [`LICENSE`](LICENSE).
   Builds on GroundingDINO (Apache-2.0); original notices are retained.
-- **gRef-CW annotations & checkpoints** — **CC BY-NC-SA 4.0** (non-commercial, share-alike):
-  https://creativecommons.org/licenses/by-nc-sa/4.0/
+- **gRef-CW annotations & checkpoints** — **CC BY 4.0**:
+  https://creativecommons.org/licenses/by/4.0/
 - **Images** — part of the **CropAndWeed** dataset, governed by its **non-commercial** licence;
-  not redistributed here. See https://github.com/cropandweed/cropandweed-dataset and
+  not redistributed here. You must obtain them from CropAndWeed and comply with that licence,
+  which restricts commercial use. See https://github.com/cropandweed/cropandweed-dataset and
   [`DATASHEET.md`](DATASHEET.md).
 
-**Commercial use is not permitted.** When using gRef-CW, please cite both this work and CropAndWeed.
+When using gRef-CW, please cite both this work and CropAndWeed.
 
 ## Citation
 
