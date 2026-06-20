@@ -32,9 +32,10 @@ Usage
 
 Notes
 -----
-* CropAndWeed image files are named ``ave_<session>_<id>`` / ``vwg_<session>_<id>``
-  (see the CropAndWeed README). Matching is done on the file name, falling back
-  to the stem (name without extension), so it is tolerant of ``.jpg``/``.png``.
+* gRef-CW file names match the original CropAndWeed image names, e.g.
+  ``vwg-0286-0002.jpg`` / ``ave-0159-0023.jpg`` (``ave``/``vwg`` = the Application /
+  Experimental sets). Matching is by file name, falling back to the stem, so it is
+  tolerant of differing extensions (``.jpg``/``.png``).
 * Stdlib only — no third-party dependencies.
 * Licence details: see ``DATASHEET.md`` and ``LICENSE``.
 """

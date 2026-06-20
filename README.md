@@ -4,7 +4,7 @@
 
 <p align="center">  <sup>1</sup> College of Science and Engineering, James Cook University, Townsville, QLD, Australia <br>  <sup>2</sup> Centre for AI and Data Science Innovation, James Cook University, Townsville, QLD, Australia</p>
 
-<p align="center">  <a href="https://arxiv.org/abs/2603.06699">    <img src="https://img.shields.io/badge/arXiv-2603.06699-b31b1b.svg" alt="arXiv">  </a>     <a href="https://doi.org/10.5281/zenodo.XXXXXXX">    <img src="https://img.shields.io/badge/Dataset-gRef--CW-blue.svg" alt="Dataset">  </a></p>
+<p align="center">  <a href="https://arxiv.org/abs/2603.06699">    <img src="https://img.shields.io/badge/arXiv-2603.06699-b31b1b.svg" alt="arXiv">  </a>     <a href="https://huggingface.co/datasets/Mhaghighat98/gRef-CW">    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-gRef--CW-yellow.svg" alt="Dataset on Hugging Face">  </a>     <a href="https://doi.org/10.57967/hf/9244">    <img src="https://img.shields.io/badge/DOI-10.57967%2Fhf%2F9244-blue.svg" alt="DOI">  </a></p>
 
 ## Abstract
 
@@ -27,33 +27,42 @@ pip install -e .
 
 ## Data and Weights
 
-The gRef-CW **annotations**, the **Weed-VG checkpoints**, and a dataset **build script** are
-released on Zenodo (a stable, citable archive with a DOI):
+The gRef-CW **annotations** and the **Weed-VG checkpoints** are released on Hugging Face
+(stable, with a DOI):
 
-**Zenodo (DOI):** https://doi.org/10.5281/zenodo.XXXXXXX  ← _TODO: replace with the real DOI once the record is published_
+- **Dataset:** https://huggingface.co/datasets/Mhaghighat98/gRef-CW
+- **DOI:** https://doi.org/10.57967/hf/9244
 
-> **Note on images.** gRef-CW is derived from the **CropAndWeed** dataset, whose licence does **not**
-> permit redistributing the images. We therefore release only the annotations. The images are
-> obtained from the original source — run `scripts/build_dataset.py` (see [`DATASHEET.md`](DATASHEET.md)),
-> which downloads the CropOrWeed9 images from CropAndWeed and arranges them to match `instances.json`.
+Download them, e.g. with the Hugging Face CLI:
 
-After building, the data layout is:
+```bash
+pip install -U "huggingface_hub[cli]"
+hf download Mhaghighat98/gRef-CW --repo-type dataset --local-dir gref-cw-hf
+```
+
+Then arrange the files so the evaluation scripts can find them:
 
 ```text
 data/
-  images/                # from CropAndWeed (not redistributed here)
-  grefs(unc).json        # referring expressions (CC BY-NC-SA 4.0)
-  instances.json         # boxes / masks / categories (CC BY-NC-SA 4.0)
-```
+  images/                # NOT distributed — built locally (see below)
+  grefs(unc).json        # from Hugging Face Annotations/
+  instances.json         # from Hugging Face Annotations/
 
-Include Weed-VG checkpoints:
-
-```text
 Weed-VG/
   checkpoints/
-    stage_one.pth
-    stage_two.pth
+    stage_one.pth        # from Hugging Face checkpoints/
+    stage_two.pth        # from Hugging Face checkpoints/
 ```
+
+> **Images are not distributed.** gRef-CW is derived from the **CropAndWeed** dataset, whose licence
+> does **not** permit redistributing the images. Reconstruct `data/images/` from the original source:
+>
+> ```bash
+> python scripts/build_dataset.py --data-dir data --auto
+> ```
+>
+> This downloads the CropOrWeed9 images from CropAndWeed and links them to match `instances.json`
+> (see [`DATASHEET.md`](DATASHEET.md)).
 
 Place GroundingDINO backbones under:
 
@@ -106,5 +115,18 @@ This repository uses **two** licences, and use of the images is governed by a **
   author={Haghighat, Mohammadreza and Saleh, Alzayat and Azghadi, Mostafa Rahimi},
   journal={arXiv preprint arXiv:2603.06699},
   year={2026}
+}
+```
+
+Dataset (Hugging Face):
+
+```bibtex
+@dataset{haghighat2026grefcw,
+  title     = {gRef-CW: Generalised Referring Expressions for Crops and Weeds},
+  author    = {Haghighat, Mohammadreza and Saleh, Alzayat and Rahimi Azghadi, Mostafa},
+  year      = {2026},
+  publisher = {Hugging Face},
+  doi       = {10.57967/hf/9244},
+  url       = {https://huggingface.co/datasets/Mhaghighat98/gRef-CW}
 }
 ```

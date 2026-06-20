@@ -20,8 +20,8 @@ versions"). Therefore:
 
 | Component | Distributed by us | Where | Licence |
 |---|---|---|---|
-| Annotations (`grefs(unc).json`, `instances.json`: referring expressions, boxes, masks) | ✅ Yes | Zenodo + this repo | CC BY-NC-SA 4.0 |
-| Weed-VG checkpoints (`stage_one.pth`, `stage_two.pth`) | ✅ Yes | Zenodo | CC BY-NC-SA 4.0 |
+| Annotations (`grefs(unc).json`, `instances.json`: referring expressions, boxes, masks) | ✅ Yes | Hugging Face | CC BY-NC-SA 4.0 |
+| Weed-VG checkpoints (`stage_one.pth`, `stage_two.pth`) | ✅ Yes | Hugging Face | CC BY-NC-SA 4.0 |
 | Source/code (model + eval) | ✅ Yes | This repo | Apache-2.0 |
 | **Images** (`data/images/`) | ❌ **No** | Obtained by the user from CropAndWeed | CropAndWeed (non-commercial) |
 
@@ -48,8 +48,10 @@ images from the official source and arranges them to match `instances.json`.
   referring expressions at both the **image level** and **instance level**.
 - **How many instances are there in total?**
   - **8,034** images.
-  - **~78,000** crop/weed object instances across **9 categories** (8 crops: Maize, Sugar beet,
-    Bean, Pea, Sunflower, Soy, Potato, Pumpkin; + 1 Weed class).
+  - **~78,000** crop/weed object instances. Expressions cover **8 crop types** (Maize, Sugar beet,
+    Bean, Pea, Sunflower, Soy, Potato, Pumpkin) + **weed**, but the released `category_id` field is
+    **binary — `1` = crop (20,765), `2` = weed (57,523)** — with the specific crop type given in the
+    expression text (e.g. *"medium Maize crop…"*).
   - **82,592** language annotations total = **78,288** instance-level expressions + **4,304**
     image-level expressions. Average expression length **6.34** words.
 - **Negative (no-target) expressions.** Included at both levels — a distinguishing feature of
@@ -98,10 +100,12 @@ images from the official source and arranges them to match `instances.json`.
       `segmentation`, `area`
     - `categories[]`: `id`, `name`
   - `grefs(unc).json` — referring expressions, grouped per image:
-    - `images[]`: `id`, `file_name`, `width`, `height`, `split` (`train`/`val`/`test`), and
-      `instance_sentences[]`
-    - `instance_sentences[]`: `ann_id` (→ an `instances.json` annotation), `category_id`,
-      `sentence` (positive expression; `original_sentence` is used as fallback), and — for test-set
+    - top-level keys: `info`, `images[]`
+    - `images[]`: `id`, `file_name`, `width`, `height`, `date_captured`, `split`
+      (`train`/`val`/`test`), and `instance_sentences[]`
+    - `instance_sentences[]`: `ann_id` (→ an `instances.json` annotation), `category_id`
+      (`1`=crop, `2`=weed), `sentence` (positive expression; `original_sentence` is the fallback),
+      and — for test-set
       negatives — `test_sentence`, `change_type`, `change_detail`. A record carrying a `change_type`
       **and** a `test_sentence` is a manipulated/negative example; the box comes from the joined
       `ann_id`.
@@ -121,10 +125,10 @@ images from the official source and arranges them to match `instances.json`.
 
 ## Distribution
 
-- **How is it distributed?** Annotations + checkpoints + build script on **Zenodo**
-  (DOI: **TODO — `10.5281/zenodo.XXXXXXX`**); code on GitHub
-  (https://github.com/MHaghighat98/WeedVG-gRefCW). Images are **not** redistributed — users fetch
-  them from CropAndWeed.
+- **How is it distributed?** Annotations + checkpoints on **Hugging Face**
+  (https://huggingface.co/datasets/Mhaghighat98/gRef-CW, DOI **`10.57967/hf/9244`**); code +
+  `build_dataset.py` on GitHub (https://github.com/MHaghighat98/WeedVG-gRefCW). Images are **not**
+  redistributed — users fetch them from CropAndWeed.
 - **Licence.**
   - Annotations & checkpoints: **CC BY-NC-SA 4.0** — https://creativecommons.org/licenses/by-nc-sa/4.0/
   - Code: **Apache-2.0** (see `LICENSE`).
@@ -137,8 +141,8 @@ images from the official source and arranges them to match `instances.json`.
 
 - **Maintainer / contact.** Mohammadreza Haghighat (reza.haghighat@my.jcu.edu.au),
   Alzayat Saleh (alzayat.saleh@my.jcu.edu.au). **TODO: confirm primary contact.**
-- **Versioning / updates.** Versioned via the Zenodo record (DOI per version). **TODO: erratum/update
-  policy.**
+- **Versioning / updates.** Versioned via the Hugging Face dataset repo (DOI per version). **TODO:
+  erratum/update policy.**
 
 ## Citation
 
