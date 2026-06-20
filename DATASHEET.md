@@ -62,12 +62,14 @@ images from the official source and arranges them to match `instances.json`.
   (≥208k px²); bounding box; segmentation mask. Expressions follow the template
   *"(Size) (Category) in the (Position)"*.
 - **Is any data missing?** Instances smaller than **16×16 px** are excluded (not human-identifiable).
-- **Distributions.** 84.7% of instances are tiny or small; instance area ranges ~0.01%–0.97% of the
-  image; 30.7% of images contain >10 instances (see paper Fig. 3).
+- **Distributions.** Instance scale: **tiny 50.7%, small 34.0%, medium 13.7%, large 1.7%** (so
+  **84.7%** are tiny/small). Scene density: 1–10 instances = **69.3%** of images, 11–20 = **18.7%**,
+  21–30 = **6.4%**, >30 = **5.6%** (so **30.7%** have >10). Instance area ranges ~**0.01%–0.97%** of
+  the image; square-root instance size **16–1,402 px** (Table 1, Fig. 3).
 - **Splits.** Train/Val/Test = **70/15/15**, balanced across images containing only-crops,
   only-weeds, both, or neither.
-- **Image resolution / capture details.** Inherited from CropAndWeed. **TODO: state native
-  resolution and confirm.**
+- **Image resolution.** High-resolution; square-root image-area **≈1,445 px** (Table 1). Native
+  pixel resolution (W×H) is inherited from CropAndWeed — **TODO: state exact dimensions.**
 
 ## Collection process
 
@@ -81,8 +83,9 @@ images from the official source and arranges them to match `instances.json`.
   Replace/Swap.
 - **Who annotated, and how were they compensated?** **TODO.**
 - **Over what timeframe was the data collected/annotated?** **TODO.**
-- **Ethical review.** Subject matter is plants/soil; no human subjects or PII. IRB review: **TODO
-  (likely N/A — confirm).**
+- **Ethical review.** Subject matter is plants/soil imagery with **no human subjects, faces, or
+  PII**, so human-research-ethics/IRB review is not applicable. (arXiv v1 has no acknowledgements
+  section — **TODO: add funding sources for camera-ready.**)
 
 ## Preprocessing / cleaning / labelling
 
@@ -98,7 +101,8 @@ images from the official source and arranges them to match `instances.json`.
 - **Intended use.** Training and evaluation of generalised visual grounding / generalised referring
   expression comprehension models for precision agriculture; benchmarking existence-aware,
   instance-level grounding. Benchmark metrics: **Recall@0.5, Top-k Accuracy, mIoU, Neg-Acc**
-  (threshold-free GIoU-based negative accuracy).
+  (threshold-free GIoU-based negative accuracy). Reference baselines in the paper: **MDETR,
+  GroundingDINO-T, GroundingDINO-L, SAM3**.
 - **Out-of-scope / discouraged uses.** **Commercial use is prohibited** (non-commercial licence,
   see below). Not validated for deployment-grade weed-control decisions without further testing.
 - **Known limitations / biases.** Template-generated expressions (limited linguistic diversity);

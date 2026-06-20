@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Dataset images — NOT redistributable (CropAndWeed licence).
+# Fetched locally via scripts/build_dataset.py; never commit these.
+data/images/
+.cropandweed_cache/
+
+# Model weights / checkpoints — hosted on Zenodo, not in git.
+*.pth
+*.pt
+Weed-VG/checkpoints/
+Weed-VG/weights/
+
+# Evaluation outputs
+eval_results/
+
+# OS / editor cruft
+.DS_Store

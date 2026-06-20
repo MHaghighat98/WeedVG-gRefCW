@@ -1,0 +1,23 @@
+Weed-VG / gRef-CW
+Copyright 2026 Mohammadreza Haghighat, Alzayat Saleh, Mostafa Rahimi Azghadi
+(James Cook University)
+
+This product includes software derived from GroundingDINO
+(https://github.com/IDEA-Research/GroundingDINO), Copyright (c) IDEA-Research,
+licensed under the Apache License, Version 2.0. GroundingDINO itself builds on
+DETR (Copyright (c) Facebook, Inc.) and related works; see the upstream
+repository for the complete list of attributions.
+
+The source code in this repository is licensed under the Apache License,
+Version 2.0 (see LICENSE).
+
+The gRef-CW dataset is a separate work and is NOT covered by the Apache
+License:
+  * The annotations and Weed-VG checkpoints are licensed under
+    Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    (CC BY-NC-SA 4.0).
+  * The underlying images belong to the CropAndWeed dataset
+    (Steininger et al., WACV 2023; AIT) and are provided under its
+    non-commercial licence. They are NOT redistributed in this repository.
+
+See DATASHEET.md for full dataset licensing and attribution details.
