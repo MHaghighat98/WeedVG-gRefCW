@@ -71,23 +71,18 @@ images from the official source and arranges them to match `instances.json`.
 - **Splits.** Train/Val/Test = **70/15/15**, balanced across images containing only-crops,
   only-weeds, both, or neither.
 - **Image resolution.** High-resolution; square-root image-area **≈1,445 px** (Table 1). Native
-  pixel resolution (W×H) is inherited from CropAndWeed — **TODO: state exact dimensions.**
+  pixel resolution (W×H) is inherited from CropAndWeed — **1920 x 1088**
 
 ## Collection process
 
 - **Source.** Images and base masks come from the CropAndWeed dataset (CropOrWeed9 subset). gRef-CW
   does **not** collect new imagery.
-- **Annotation pipeline.** Images were pre-segmented into soil vs. vegetation (initially colour
-  thresholding, later a CNN-based segmentation model). Bounding boxes were generated from masks and
-  **manually refined**; ambiguous or densely populated images were validated by **multi-annotator
-  voting**. Attributes (size/position/category) are computed programmatically; referring expressions
-  are generated from templates; test-set negatives are produced by category/size/position
+- **Annotation pipeline.** Attributes (size/position/category) are computed programmatically; referring expressions
+  are generated from templates at both image- and instance-levels; image-level negatives are annotated with the prior knowledge of categories that exist; test-set negatives are produced by category/size/position
   Replace/Swap.
-- **Who annotated, and how were they compensated?** **TODO.**
-- **Over what timeframe was the data collected/annotated?** **TODO.**
+- **Over what timeframe was the data collected/annotated?** **3 months**
 - **Ethical review.** Subject matter is plants/soil imagery with **no human subjects, faces, or
-  PII**, so human-research-ethics/IRB review is not applicable. (arXiv v1 has no acknowledgements
-  section — **TODO: add funding sources for camera-ready.**)
+  PII**, so human-research-ethics/IRB review is not applicable.
 
 ## Preprocessing / cleaning / labelling
 
@@ -142,9 +137,8 @@ images from the official source and arranges them to match `instances.json`.
 ## Maintenance
 
 - **Maintainer / contact.** Mohammadreza Haghighat (reza.haghighat@my.jcu.edu.au),
-  Alzayat Saleh (alzayat.saleh@my.jcu.edu.au). **TODO: confirm primary contact.**
-- **Versioning / updates.** Versioned via the Hugging Face dataset repo (DOI per version). **TODO:
-  erratum/update policy.**
+  Alzayat Saleh (alzayat.saleh@my.jcu.edu.au).
+- **Versioning / updates.** Versioned via the Hugging Face dataset repo (DOI per version). There are currently no plans to expand or update the gRef-CW dataset, except to address issues.
 
 ## Citation
 
