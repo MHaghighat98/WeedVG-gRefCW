@@ -1,4 +1,4 @@
-# Weed-VG: Multi-label Instance-level Generalised Visual Grounding in Agriculture
+# Multi-label Instance-level Generalised Visual Grounding in Agriculture
 
 Mohammadreza Haghighat, Alzayat Saleh, Mostafa Rahimi Azghadi
 
