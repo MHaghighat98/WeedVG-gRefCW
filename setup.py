@@ -104,9 +104,4 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Image Recognition",
     ],
-    entry_points={
-        "console_scripts": [
-            "weedvg-demo=demo:main",
-        ],
-    },
 )
