@@ -23,7 +23,7 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-## Data
+## Data and Weights
 
 [Dataset and checkpoint](https://myjcuedu-my.sharepoint.com/:f:/g/personal/reza_haghighat_my_jcu_edu_au/IgC-WxqTt28fT49wwQNklsXqAVqm8XE9-bFJwHuYYshw4-A)
 
@@ -33,8 +33,6 @@ data/
   grefs(unc).json
   instances.json
 ```
-
-## Weights
 
 Include Weed-VG checkpoints:
 
