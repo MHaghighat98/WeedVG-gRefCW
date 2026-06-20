@@ -22,3 +22,6 @@ eval_results/
 
 # OS / editor cruft
 .DS_Store
+
+# Local working notes — not for the public repo
+TODO_Reza.md
