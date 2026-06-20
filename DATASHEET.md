@@ -37,9 +37,9 @@ images from the official source and arranges them to match `instances.json`.
   language, including **multi-target** and **no-target (negative)** expressions. Existing referring
   datasets (RefCOCO/+/g, ReferItGame) are natural-image, single-target, and lack negative
   expressions; no prior VG benchmark exists for agriculture.
-- **Who created it / funded it?** Mohammadreza Haghighat, Alzayat Saleh, and Mostafa Rahimi Azghadi,
+- **Who created it?** Mohammadreza Haghighat, Alzayat Saleh, and Mostafa Rahimi Azghadi,
   College of Science and Engineering & Centre for AI and Data Science Innovation, James Cook
-  University, Australia. Funding: **TODO**.
+  University, Australia.
 
 ## Composition
 
