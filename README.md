@@ -67,11 +67,11 @@ python gRef-CW/eval_baselines.py --help
 ```
 
 Baselines:
-
-- MDETR: [ashkamath/mdetr](https://github.com/ashkamath/mdetr), pass
-  `--mdetr-root /path/to/mdetr`.
-- SAM3: [facebookresearch/sam3](https://github.com/facebookresearch/sam3),
-  follow its README for installation and checkpoint access.
+ Follow their README for installation and checkpoint access.
+ 
+- MDETR: [ashkamath/mdetr](https://github.com/ashkamath/mdetr).
+- GroundingDINO: [ashkamath/mdetr]([https://github.com/ashkamath/mdetr](https://github.com/idea-research/groundingdino).
+- SAM3: [facebookresearch/sam3](https://github.com/facebookresearch/sam3).
   
 
 ## Licence
