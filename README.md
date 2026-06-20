@@ -4,7 +4,7 @@
 
 <p align="center">  <sup>1</sup> College of Science and Engineering, James Cook University, Townsville, QLD, Australia <br>  <sup>2</sup> Centre for AI and Data Science Innovation, James Cook University, Townsville, QLD, Australia</p>
 
-<p align="center">  <a href="https://arxiv.org/abs/2603.06699">    <img src="https://img.shields.io/badge/arXiv-2603.06699-b31b1b.svg" alt="arXiv">  </a>     <a href="https://myjcuedu-my.sharepoint.com/personal/reza_haghighat_my_jcu_edu_au/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Freza%5Fhaghighat%5Fmy%5Fjcu%5Fedu%5Fau%2FDocuments%2FgRef%2DCW&ga=1">    <img src="https://img.shields.io/badge/Dataset-gRef--CW-blue.svg" alt="Dataset">  </a></p>
+<p align="center">  <a href="https://arxiv.org/abs/2603.06699">    <img src="https://img.shields.io/badge/arXiv-2603.06699-b31b1b.svg" alt="arXiv">  </a>     <a href="https://doi.org/10.5281/zenodo.XXXXXXX">    <img src="https://img.shields.io/badge/Dataset-gRef--CW-blue.svg" alt="Dataset">  </a></p>
 
 ## Abstract
 
@@ -12,6 +12,8 @@ gRef-CW is a generalized visual grounding benchmark for crop and weed instances
 in field imagery, including multi-target and no-target expressions. Weed-VG
 ranks detector proposals with hierarchical relevance scoring and refines boxes
 with interpolation-driven regression.
+
+📄 **Dataset documentation:** see [`DATASHEET.md`](DATASHEET.md).
 
 ## Installation
 
@@ -25,13 +27,23 @@ pip install -e .
 
 ## Data and Weights
 
-[Dataset and checkpoint](https://myjcuedu-my.sharepoint.com/:f:/g/personal/reza_haghighat_my_jcu_edu_au/IgC-WxqTt28fT49wwQNklsXqAVqm8XE9-bFJwHuYYshw4-A)
+The gRef-CW **annotations**, the **Weed-VG checkpoints**, and a dataset **build script** are
+released on Zenodo (a stable, citable archive with a DOI):
+
+**Zenodo (DOI):** https://doi.org/10.5281/zenodo.XXXXXXX  ← _TODO: replace with the real DOI once the record is published_
+
+> **Note on images.** gRef-CW is derived from the **CropAndWeed** dataset, whose licence does **not**
+> permit redistributing the images. We therefore release only the annotations. The images are
+> obtained from the original source — run `scripts/build_dataset.py` (see [`DATASHEET.md`](DATASHEET.md)),
+> which downloads the CropOrWeed9 images from CropAndWeed and arranges them to match `instances.json`.
+
+After building, the data layout is:
 
 ```text
 data/
-  images/
-  grefs(unc).json
-  instances.json
+  images/                # from CropAndWeed (not redistributed here)
+  grefs(unc).json        # referring expressions (CC BY-NC-SA 4.0)
+  instances.json         # boxes / masks / categories (CC BY-NC-SA 4.0)
 ```
 
 Include Weed-VG checkpoints:
@@ -74,9 +86,17 @@ Baselines:
 
 ## Licence
 
-This project is licensed under the Creative Commons Attribution 4.0
-International (CC BY 4.0) licence:
-https://creativecommons.org/licenses/by/4.0/
+This repository uses **two** licences, and use of the images is governed by a **third** (upstream):
+
+- **Code** (Weed-VG model + gRef-CW evaluation scripts) — **Apache-2.0**, see [`LICENSE`](LICENSE).
+  Builds on GroundingDINO (Apache-2.0); original notices are retained.
+- **gRef-CW annotations & checkpoints** — **CC BY-NC-SA 4.0** (non-commercial, share-alike):
+  https://creativecommons.org/licenses/by-nc-sa/4.0/
+- **Images** — part of the **CropAndWeed** dataset, governed by its **non-commercial** licence;
+  not redistributed here. See https://github.com/cropandweed/cropandweed-dataset and
+  [`DATASHEET.md`](DATASHEET.md).
+
+**Commercial use is not permitted.** When using gRef-CW, please cite both this work and CropAndWeed.
 
 ## Citation
 
