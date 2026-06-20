@@ -11,7 +11,7 @@ Required for all runs:
 Additional for MDETR:
 
 * clone `https://github.com/ashkamath/mdetr`
-* set `MDETR_ROOT` in `scripts/run_all_evals.sh`
+* set `MDETR_ROOT` in `gRef-CW/run_all_evals.sh`
 * allow the MDETR RefCOCO checkpoint download, or pre-cache it
 
 Additional for SAM3:
@@ -24,7 +24,7 @@ Additional for SAM3:
 ### Scripts and Reproduction
 
 * The shell scripts are canonical for paper reproduction. Paper numbers use `--text-threshold 0.95 --box-threshold 0.01`.
-* `scripts/run_all_evals.sh` is an all-in-one reproduction script. It assumes all optional baseline dependencies are installed before launch. Because it runs with `set -e`, any missing external dependency or failed baseline stops the script.
+* `gRef-CW/run_all_evals.sh` is an all-in-one reproduction script. It assumes all optional baseline dependencies are installed before launch. Because it runs with `set -e`, any missing external dependency or failed baseline stops the script.
 
 ---
 
