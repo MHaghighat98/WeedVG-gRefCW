@@ -72,13 +72,7 @@ Baselines:
   `--mdetr-root /path/to/mdetr`.
 - SAM3: [facebookresearch/sam3](https://github.com/facebookresearch/sam3),
   follow its README for installation and checkpoint access.
-
-## Structure
-
-```text
-gRef-CW/        Dataset notes and evaluation
-Weed-VG/        Model code, configs, checkpoints, weights
-```
+  
 
 ## Licence
 
