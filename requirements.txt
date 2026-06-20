@@ -1,0 +1,31 @@
+# ============================================================
+# Weed-VG requirements
+# Install with:  pip install -r requirements.txt
+# ============================================================
+
+# Deep learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# NLP / text encoder
+transformers>=4.30.0
+
+# GroundingDINO model utilities
+addict
+yapf
+timm
+
+# Vision utilities
+opencv-python
+Pillow
+
+# Evaluation & detection utilities
+supervision>=0.22.0
+pycocotools
+scipy
+
+# Misc
+numpy
+tqdm
+matplotlib
+einops
