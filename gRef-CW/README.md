@@ -5,12 +5,12 @@
 Required for all runs:
 
 * GroundingDINO weights in `weights/`
-* Weed-VG checkpoint in `checkpoints/weedvg_swinb/`
+* Weed-VG checkpoint in `checkpoints/`
 * gRef-CW data in `data/`
 
 Additional for MDETR:
 
-* clone `[https://github.com/ashkamath/mdetr](https://github.com/ashkamath/mdetr)`
+* clone `https://github.com/ashkamath/mdetr`
 * set `MDETR_ROOT` in `scripts/run_all_evals.sh`
 * allow the MDETR RefCOCO checkpoint download, or pre-cache it
 
