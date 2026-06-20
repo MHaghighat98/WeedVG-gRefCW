@@ -1,6 +1,10 @@
-# Multi-label Instance-level Generalised Visual Grounding in Agriculture
+<h1 align="center">Multi-label Instance-level Generalised Visual Grounding in Agriculture</h1>
 
-Mohammadreza Haghighat, Alzayat Saleh, Mostafa Rahimi Azghadi
+<p align="center">  <strong>Mohammadreza Haghighat</strong><sup>1,2</sup>   <strong>Alzayat Saleh</strong><sup>1,2</sup>   <strong>Mostafa Rahimi Azghadi</strong><sup>1,2</sup></p>
+
+<p align="center">  <sup>1</sup> College of Science and Engineering, James Cook University, Townsville, QLD, Australia <br>  <sup>2</sup> Centre for AI and Data Science Innovation, James Cook University, Townsville, QLD, Australia</p>
+
+<p align="center">  <a href="https://arxiv.org/abs/2603.06699">    <img src="https://img.shields.io/badge/arXiv-2603.06699-b31b1b.svg" alt="arXiv">  </a>     <a href="https://myjcuedu-my.sharepoint.com/personal/reza_haghighat_my_jcu_edu_au/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Freza%5Fhaghighat%5Fmy%5Fjcu%5Fedu%5Fau%2FDocuments%2FgRef%2DCW&ga=1">    <img src="https://img.shields.io/badge/Dataset-gRef--CW-blue.svg" alt="Dataset">  </a></p>
 
 ## Abstract
 
