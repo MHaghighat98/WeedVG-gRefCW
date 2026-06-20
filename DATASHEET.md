@@ -3,8 +3,6 @@
 A datasheet for the **gRef-CW** dataset (Generalised Referring expressions for Crops and Weeds),
 following Gebru et al., *"Datasheets for Datasets"* (2021).
 
-> **Items marked `TODO` must be confirmed/filled by the authors before release.**
-
 gRef-CW accompanies the paper *"Multi-label Instance-level Generalised Visual Grounding in
 Agriculture"* (Haghighat, Saleh, Rahimi Azghadi; ECCV 2026) and the Weed-VG model in this
 repository.
