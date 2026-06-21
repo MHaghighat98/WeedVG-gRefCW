@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-label Instance-level Generalised Visual Grounding in Agriculture</title>
+<meta name="description" content="gRef-CW: a generalised visual grounding benchmark for crops and weeds, and Weed-VG, a hierarchical relevance scoring framework. ECCV 2026.">
+
+<!-- Open Graph / social preview -->
+<meta property="og:title" content="Multi-label Instance-level Generalised Visual Grounding in Agriculture">
+<meta property="og:description" content="gRef-CW benchmark + Weed-VG framework for crop and weed visual grounding. ECCV 2026.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="static/images/teaser.jpg">
+
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#e6e8eb; --bg:#ffffff;
+    --accent:#2e7d32; --accent-dark:#1b5e20; --soft:#f5f7f4; --chip:#eef2ee;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; color:var(--ink); background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Noto Sans",sans-serif;
+    line-height:1.65; font-size:17px; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent-dark); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+  .container{max-width:760px; margin:0 auto}
+
+  /* ---- Header ---- */
+  header{padding:56px 0 28px; text-align:center; border-bottom:1px solid var(--line)}
+  .venue{display:inline-block; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    font-size:13px; color:var(--accent-dark); background:var(--chip);
+    padding:5px 13px; border-radius:999px; margin-bottom:18px}
+  h1{font-size:32px; line-height:1.25; margin:.2em 0 .55em; font-weight:800; letter-spacing:-.01em}
+  .authors{font-size:18px; margin:.2em 0; color:var(--ink)}
+  .authors a{color:var(--ink); border-bottom:1px dotted #aaa}
+  .authors sup{color:var(--accent-dark); font-weight:700}
+  .affil{color:var(--muted); font-size:15px; margin:.55em auto 0; max-width:680px}
+  .affil .row{margin:2px 0}
+  .note{color:var(--muted); font-size:14px; margin-top:.5em}
+
+  /* ---- Buttons ---- */
+  .buttons{display:flex; flex-wrap:wrap; gap:11px; justify-content:center; margin:26px 0 6px}
+  .btn{display:inline-flex; align-items:center; gap:8px; background:#222; color:#fff;
+    padding:11px 18px; border-radius:999px; font-size:15px; font-weight:600; transition:transform .06s ease,background .15s ease}
+  .btn:hover{background:#000; text-decoration:none; transform:translateY(-1px)}
+  .btn.alt{background:var(--accent)}
+  .btn.alt:hover{background:var(--accent-dark)}
+  .btn .ico{font-size:16px; line-height:1}
+
+  /* ---- Sections ---- */
+  section{padding:42px 0}
+  section + section{border-top:1px solid var(--line)}
+  h2{font-size:25px; text-align:center; margin:0 0 22px; font-weight:800; letter-spacing:-.01em}
+  h3{font-size:18px; margin:26px 0 8px}
+  p{margin:0 0 16px}
+
+  figure{margin:0; text-align:center}
+  figure img{max-width:100%; height:auto; border-radius:10px}
+  figcaption{color:var(--muted); font-size:14.5px; margin-top:12px; text-align:left; max-width:760px; margin-left:auto; margin-right:auto}
+  .figframe{border:1px solid var(--line); border-radius:12px; padding:16px; background:#fff}
+
+  /* ---- Stat chips ---- */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:6px 0 4px}
+  .stat{background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:16px 12px; text-align:center}
+  .stat b{display:block; font-size:24px; color:var(--accent-dark); line-height:1.1}
+  .stat span{font-size:13px; color:var(--muted)}
+  @media(max-width:680px){ .stats{grid-template-columns:repeat(2,1fr)} h1{font-size:26px} }
+
+  /* ---- Table ---- */
+  .tablewrap{overflow-x:auto}
+  table{border-collapse:collapse; width:100%; font-size:15px; margin:0 auto}
+  th,td{padding:9px 12px; text-align:center; border-bottom:1px solid var(--line)}
+  th{font-weight:700; background:var(--soft)}
+  td:first-child,th:first-child{text-align:left}
+  tr.ours{background:#eef6ef}
+  tr.ours td{font-weight:700}
+  .tnote{color:var(--muted); font-size:13.5px; margin-top:10px; text-align:center}
+
+  /* ---- Placeholder ---- */
+  .placeholder{border:2px dashed var(--accent); background:repeating-linear-gradient(45deg,#fafdf9,#fafdf9 12px,#f2f7f1 12px,#f2f7f1 24px);
+    border-radius:12px; padding:34px 22px; text-align:center; color:var(--accent-dark)}
+  .placeholder .tag{display:inline-block; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    font-size:12px; background:var(--accent); color:#fff; padding:4px 11px; border-radius:999px; margin-bottom:12px}
+  .placeholder p{color:var(--muted); margin:6px auto 0; max-width:620px; font-size:14.5px}
+  .placeholder code{background:#fff; border:1px solid var(--line); border-radius:5px; padding:1px 6px; font-size:13px}
+
+  /* ---- BibTeX ---- */
+  pre{background:#0f1115; color:#e7e9ee; border-radius:10px; padding:18px 20px; overflow-x:auto;
+    font-size:13.5px; line-height:1.5; font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  .bibblock + .bibblock{margin-top:18px}
+
+  footer{padding:34px 0 56px; text-align:center; color:var(--muted); font-size:14px; border-top:1px solid var(--line)}
+  footer a{color:var(--muted); text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="venue">ECCV 2026 · Datasets &amp; Benchmarks</div>
+    <h1>Multi-label Instance-level Generalised<br>Visual Grounding in Agriculture</h1>
+
+    <div class="authors">
+      <a href="mailto:reza.haghighat@my.jcu.edu.au">Mohammadreza Haghighat</a><sup>1,2,*</sup>&nbsp;&nbsp;
+      <a href="mailto:alzayat.saleh@my.jcu.edu.au">Alzayat Saleh</a><sup>1,2</sup>&nbsp;&nbsp;
+      <a href="mailto:mostafa.rahimiazghadi@jcu.edu.au">Mostafa Rahimi Azghadi</a><sup>1,2,*</sup>
+    </div>
+    <div class="affil">
+      <div class="row"><sup>1</sup> College of Science and Engineering, James Cook University, Townsville, QLD, Australia</div>
+      <div class="row"><sup>2</sup> Centre for AI and Data Science Innovation, James Cook University, Australia</div>
+      <div class="note"><sup>*</sup> Corresponding authors</div>
+    </div>
+
+    <div class="buttons">
+      <a class="btn" href="https://arxiv.org/abs/2603.06699"><span class="ico">📄</span> Paper (arXiv)</a>
+      <a class="btn alt" href="https://github.com/MHaghighat98/WeedVG-gRefCW"><span class="ico">💻</span> Code</a>
+      <a class="btn alt" href="https://huggingface.co/datasets/Mhaghighat98/gRef-CW"><span class="ico">🤗</span> Dataset</a>
+      <a class="btn" href="https://doi.org/10.57967/hf/9244"><span class="ico">🔗</span> DOI</a>
+      <a class="btn" href="#bibtex"><span class="ico">❝</span> BibTeX</a>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== TEASER ===================== -->
+<section>
+  <div class="wrap">
+    <figure class="figframe">
+      <img src="static/images/teaser.jpg" alt="Overview of the Weed-VG framework and gRef-CW dataset">
+      <figcaption>
+        <b>Overview.</b> We introduce <b>gRef-CW</b>, a generalised referring-expression dataset for crop and weed
+        visual grounding (8,000+ high-resolution field images, 82k annotations at image and instance level), and
+        <b>Weed-VG</b>, a modular framework whose Hierarchical Relevance Scoring (HRS) first decides whether the
+        referred instance exists, then localises it.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================== ABSTRACT ===================== -->
+<section>
+  <div class="wrap container">
+    <h2>Abstract</h2>
+    <p>
+      Understanding field imagery, such as detecting plants and distinguishing individual crop and weed instances,
+      is a central challenge in precision agriculture. Despite progress in vision–language tasks like captioning and
+      visual question answering, Visual Grounding (VG) — localising language-referred objects — remains unexplored in
+      agriculture, largely because there is no suitable benchmark for field conditions, where many plants look highly
+      similar, appear at multiple scales, and the referred target may be absent from the image.
+    </p>
+    <p>
+      To address this, we introduce <b>gRef-CW</b>, the first dataset designed for generalised visual grounding in
+      agriculture, including negative (no-target) expressions. Benchmarking current state-of-the-art grounding models
+      on gRef-CW reveals a substantial domain gap. Motivated by these findings, we introduce <b>Weed-VG</b>, a modular
+      framework that incorporates multi-label hierarchical relevance scoring and interpolation-driven regression.
+      Weed-VG advances instance-level visual grounding and provides a clear baseline for developing VG methods in
+      precision agriculture.
+    </p>
+  </div>
+</section>
+
+<!-- ===================== KEY STATS ===================== -->
+<section>
+  <div class="wrap">
+    <h2>The gRef-CW Dataset</h2>
+    <div class="stats">
+      <div class="stat"><b>8,034</b><span>field images</span></div>
+      <div class="stat"><b>82,592</b><span>annotations</span></div>
+      <div class="stat"><b>78,288</b><span>instance-level expressions</span></div>
+      <div class="stat"><b>9</b><span>crop &amp; weed categories</span></div>
+    </div>
+    <div class="container" style="margin-top:22px">
+      <p>
+        gRef-CW is derived from the CropOrWeed9 subset of the
+        <a href="https://github.com/cropandweed/cropandweed-dataset">CropAndWeed</a> dataset and provides
+        multi-level textual annotations, bounding boxes, and segmentation masks. It uniquely includes
+        <b>negative expressions</b> at both the image and instance level, a long-tailed scale distribution
+        (84.7% of instances are tiny or small), and dense scenes (30.7% of images contain more than 10 instances).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== VIDEO (PLACEHOLDER) ===================== -->
+<section>
+  <div class="wrap container">
+    <h2>Video</h2>
+
+    <!--
+      ============================================================
+      TODO (Reza): ADD THE OVERVIEW / DEMO VIDEO HERE.
+      Two options:
+
+      (A) Self-hosted MP4:
+          1. Put the file at: docs/static/videos/overview.mp4
+          2. Delete the .placeholder <div> below and uncomment:
+
+          <video controls poster="static/images/teaser.jpg" style="width:100%;border-radius:10px">
+            <source src="static/videos/overview.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+
+      (B) YouTube embed:
+          Replace VIDEO_ID below and use this instead of the placeholder:
+
+          <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px">
+            <iframe src="https://www.youtube.com/embed/VIDEO_ID"
+              style="position:absolute;top:0;left:0;width:100%;height:100%;border:0"
+              allowfullscreen></iframe>
+          </div>
+
+      If there is no video, delete this whole <section>.
+      ============================================================
+    -->
+    <div class="placeholder">
+      <div class="tag">Placeholder — add video</div>
+      <p>Drop an overview/demo video here. Self-host an MP4 at
+      <code>docs/static/videos/overview.mp4</code> or embed a YouTube link.
+      See the HTML comment in this section for the exact snippet, or delete this
+      section if there is no video.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== METHOD ===================== -->
+<section>
+  <div class="wrap">
+    <h2>How gRef-CW is Built</h2>
+    <figure class="figframe">
+      <img src="static/images/pipeline.png" alt="gRef-CW data collection and annotation pipeline">
+      <figcaption>
+        <b>Annotation pipeline.</b> A four-stage process: (1) filter instances unrecognisable by humans and categorise
+        images as single / mixed / no-target; (2) extract instance attributes (size, category, 3×3-grid position);
+        (3) compose attributes into natural-language templates for positive instance-level expressions, plus
+        image-level negatives; (4) build test sentences by replacing categories or swapping attributes.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The Weed-VG Framework</h2>
+    <figure class="figframe">
+      <img src="static/images/architecture.png" alt="Architecture of the Weed-VG framework">
+      <figcaption>
+        <b>Weed-VG architecture.</b> A grounding model generates proposals that are refined by the Hierarchical
+        Relevance Scoring (HRS) module, which fuses visual and textual features via Multi-Head Cross-Attention and an
+        FFN. HRS decomposes relevance into <b>Level 0</b> (global existence detection — does the referent appear?) and
+        <b>Level 1</b> (instance relevance — which proposals match?), with a hierarchical constraint conditioning
+        localisation on existence. Boxes are regressed with an interpolation-driven IoU loss (InterpIoU).
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================== RESULTS ===================== -->
+<section>
+  <div class="wrap">
+    <h2>Results</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Model</th><th>Top-1</th><th>Top-5</th><th>R@0.5</th><th>mIoU</th><th>Neg-Acc</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>MDETR</td><td>10.16</td><td>12.97</td><td>7.78</td><td>54.19</td><td>3.32</td></tr>
+          <tr><td>GroundingDINO-T</td><td>11.92</td><td>31.99</td><td>20.34</td><td>17.44</td><td>2.88</td></tr>
+          <tr><td>GroundingDINO-L</td><td>20.38</td><td>43.49</td><td>28.73</td><td>23.68</td><td>7.52</td></tr>
+          <tr><td>SAM3</td><td>34.88</td><td>66.80</td><td>46.65</td><td>32.76</td><td>25.53</td></tr>
+          <tr class="ours"><td>Weed-VG (Ours)</td><td>62.42</td><td>82.45</td><td>55.44</td><td>57.25</td><td>78.35</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tnote">Main results on the gRef-CW <b>test</b> set. Neg-Acc is evaluated on instance-level negative
+      sentences. Weed-VG jointly improves retrieval, ranking, and negative-handling.</div>
+  </div>
+</section>
+
+<!-- ===================== QUALITATIVE (PLACEHOLDER) ===================== -->
+<section>
+  <div class="wrap">
+    <h2>Qualitative Results</h2>
+
+    <!--
+      ============================================================
+      TODO (Reza): ADD THE QUALITATIVE RESULTS FIGURE (paper Fig. 5).
+      Steps:
+        1. Export Fig. 5 from the paper (page 13 of the PDF) — the grid of
+           positive/negative grounding examples across tiny–medium scales.
+        2. Save it as: docs/static/images/qualitative.png
+        3. Delete the .placeholder <div> below and uncomment:
+
+        <figure class="figframe">
+          <img src="static/images/qualitative.png" alt="Qualitative grounding results on gRef-CW">
+          <figcaption><b>Qualitative results.</b> Weed-VG on positive and negative referring
+          expressions across challenging scales (tiny–medium).</figcaption>
+        </figure>
+      ============================================================
+    -->
+    <div class="placeholder">
+      <div class="tag">Placeholder — add figure</div>
+      <p>Add the qualitative results figure (paper Fig. 5, page 13). Save it as
+      <code>docs/static/images/qualitative.png</code> and uncomment the snippet in the
+      HTML comment above. Delete this section if not needed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BIBTEX ===================== -->
+<section id="bibtex">
+  <div class="wrap">
+    <h2>BibTeX</h2>
+    <div class="bibblock">
+      <pre>@inproceedings{haghighat2026multi,
+  title     = {Multi-label Instance-level Generalised Visual Grounding in Agriculture},
+  author    = {Haghighat, Mohammadreza and Saleh, Alzayat and Rahimi Azghadi, Mostafa},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2026}
+}</pre>
+    </div>
+    <div class="bibblock">
+      <pre>@dataset{haghighat2026grefcw,
+  title     = {gRef-CW: Generalised Referring Expressions for Crops and Weeds},
+  author    = {Haghighat, Mohammadreza and Saleh, Alzayat and Rahimi Azghadi, Mostafa},
+  year      = {2026},
+  publisher = {Hugging Face},
+  doi       = {10.57967/hf/9244},
+  url       = {https://huggingface.co/datasets/Mhaghighat98/gRef-CW}
+}</pre>
+    </div>
+    <p style="font-size:14.5px;color:var(--muted);margin-top:14px">
+      Please also cite the source dataset, CropAndWeed (Steininger et al., WACV 2023), whose images gRef-CW builds upon.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      gRef-CW annotations &amp; checkpoints: CC BY 4.0 · Code: Apache-2.0 ·
+      Images: <a href="https://github.com/cropandweed/cropandweed-dataset">CropAndWeed</a> (non-commercial, not redistributed).
+    </p>
+    <p>James Cook University, Townsville, QLD, Australia. Page template adapted in the spirit of the
+      <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a> academic project page.</p>
+  </div>
+</footer>
+
+</body>
+</html>
