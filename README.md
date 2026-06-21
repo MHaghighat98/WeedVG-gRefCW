@@ -4,7 +4,7 @@
 
 <p align="center">  <sup>1</sup> College of Science and Engineering, James Cook University, Townsville, QLD, Australia <br>  <sup>2</sup> Centre for AI and Data Science Innovation, James Cook University, Townsville, QLD, Australia</p>
 
-<p align="center">  <a href="https://arxiv.org/abs/2603.06699">    <img src="https://img.shields.io/badge/arXiv-2603.06699-b31b1b.svg" alt="arXiv">  </a>     <a href="https://huggingface.co/datasets/Mhaghighat98/gRef-CW">    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-gRef--CW-yellow.svg" alt="Dataset on Hugging Face">  </a>     <a href="https://doi.org/10.57967/hf/9244">    <img src="https://img.shields.io/badge/DOI-10.57967%2Fhf%2F9244-blue.svg" alt="DOI">  </a></p>
+<p align="center">  <a href="https://arxiv.org/abs/2603.06699">    <img src="https://img.shields.io/badge/arXiv-2603.06699-b31b1b.svg" alt="arXiv">  </a>     <a href="https://mhaghighat98.github.io/WeedVG-gRefCW/">    <img src="https://img.shields.io/badge/%F0%9F%8C%90%20Project%20Page-WeedVG-2e7d32.svg" alt="Project Page">  </a>     <a href="https://huggingface.co/datasets/Mhaghighat98/gRef-CW">    <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-gRef--CW-yellow.svg" alt="Dataset on Hugging Face">  </a>     <a href="https://doi.org/10.57967/hf/9244">    <img src="https://img.shields.io/badge/DOI-10.57967%2Fhf%2F9244-blue.svg" alt="DOI">  </a></p>
 
 ## Abstract
 
