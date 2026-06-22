@@ -113,7 +113,7 @@ When using gRef-CW, please cite both this work and CropAndWeed.
 ```bibtex
 @article{haghighat2026multi,
   title={Multi-label Instance-level Generalised Visual Grounding in Agriculture},
-  author={Haghighat, Mohammadreza and Saleh, Alzayat and Azghadi, Mostafa Rahimi},
+  author={Haghighat, Mohammadreza and Saleh, Alzayat and Rahimi Azghadi, Mostafa},
   journal={arXiv preprint arXiv:2603.06699},
   year={2026}
 }
